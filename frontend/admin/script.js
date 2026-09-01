@@ -128,19 +128,13 @@ function renderUserPage(target, params) {
 
     // 5. หากดาวน์โหลดข้อมูลเสร็จสมบูรณ์ ให้นำข้อมูลมาแสดงผลแยกตามชื่อหน้า (target)
     if (target === "user") {
-        console.log(`เปิดหน้าแสดงรายการข้อมูลลูกบ้านทั้งหมด`);
         renderUserList(UsersData);
     } else if (target === "userDetail") {
-        console.log(`เปิดหน้าแสดงรายละเอียดของลูกบ้าน ID:`, params.id);
         renderUserDetail(Number(params.id));
     } else if (target === "vehicleDetail") {
-        console.log(`เปิดหน้าแสดงรายละเอียดประวัติเข้า-ออกของยานพาหนะ ID: ${params.id}, ทะเบียน: ${params.carPlate}`);
         renderEachVehicle(Number(params.id), String(params.carPlate));
     } else if (target === "vehicle") {
-        console.log(`เปิดหน้าแสดงประวัติยานพาหนะเข้า-ออกทั้งหมด`);
         renderVehicleList(VeLog);
-    } else if (target === "home") {
-        // สามารถเพิ่มการเรนเดอร์หน้าแรก Dashboard หรือสถิติที่นี่ในอนาคต
     }
 }
 
@@ -158,7 +152,6 @@ function renderVehicleList(data) {
     // วนลูปตรวจสอบข้อมูลผู้ใช้แต่ละราย
     data.forEach(d => {
         // คัดกรองเฉพาะผู้ใช้ที่มีข้อมูลยานพาหนะลงทะเบียนไว้
-        console.log("datavehicle", d);
         const plate = d.plate || "-"; // ป้ายทะเบียนรถ
         const type = d.type || "-";    // ประเภทรถ (เช่น รถยนต์, จักรยานยนต์)
         if (d.time_in) {
@@ -206,7 +199,7 @@ function renderUserList(users) {
 
     let htmlContent = "";
     // วนลูปสร้าง HTML รายชื่อลูกบ้าน
-    users.forEach((user, index) => {
+    users.filter(user => user.role === "member").forEach((user, index) => {
         htmlContent += `
         <div class="User">
             <h2>${index + 1}</h2>
@@ -242,7 +235,6 @@ function renderUserDetail(userId) {
         userDetailContainer.innerHTML = `<p class="loading-text">ไม่พบข้อมูลผู้ใช้งาน</p>`;
         return;
     }
-    console.log("กำลังเรนเดอร์ข้อมูลลูกบ้าน:", user);
 
     // วนลูปดึงข้อมูลรถทั้งหมดของบ้านหลังนี้มาจัดทำรายการ HTML
     let vehiclesHTML = '';
@@ -302,14 +294,11 @@ function renderUserDetail(userId) {
 function renderEachVehicle(userId, vehiclePlate) {
     // หาข้อมูลรถของลูกบ้านหลัง
     const vData = vehiclesData.filter(p => p.user_id === userId);
-    console.log("vData:", vData);
     // ดึงเฉพาะคันนั้นมาแสดง
     const vehicle = vData.find(v => v.plate === vehiclePlate);
-    console.log("vehicle:", vehicle);
     // ดึงเวลาเข้าออก
     // const timeStamp = VeLog.filter(t => t.plate === vehiclePlate && t.user_id === userId);
     const timeStamp = VeLog.filter(t => t.plate === vehiclePlate);
-    console.log("timeStamp:", timeStamp);
 
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
     if (!vData) {
@@ -382,9 +371,6 @@ document.querySelector('.main-content').addEventListener('click', (e) => {
 
     // ดึงข้อมูลที่เก็บใน HTML attribute (Destructuring Dataset)
     const { target, ...params } = link.dataset;
-
-    console.log(`การทำงานนำทาง: สลับไปยังหน้า ${target}`);
-    console.log(`ข้อมูลพารามิเตอร์เสริม:`, params);
 
     // สั่งสลับหน้าตามการควบคุมเส้นทางหน้าจอ พร้อมส่งพารามิเตอร์ไปด้วย
     showPage(target, params);

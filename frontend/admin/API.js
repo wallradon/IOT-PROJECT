@@ -32,8 +32,6 @@ async function getUser(path) {
         // บันทึกข้อมูลลงใน getUsers (Global State)
         UsersData = data;
 
-        console.log("getUser : ", UsersData);
-
 
     } catch (err) {
         console.log("เกิดข้อผิดพลาดในการดึงข้อมูล:", err);
@@ -66,7 +64,6 @@ async function getVehicles(path) {
         // บันทึกข้อมูลลงใน getVehicles (Global State) 
         // สกัดเอาเฉพาะส่วน data ที่เป็น Array มาใช้งาน
         vehiclesData = data.data || [];
-        console.log("vehiclesData", vehiclesData)
 
     } catch (err) {
         console.log("เกิดข้อผิดพลาดในการดึงข้อมูล:", err);
@@ -99,7 +96,6 @@ async function getVeLog(path) {
         // บันทึกข้อมูลลงใน getUsers (Global State)
         if (data.success) {
             VeLog = data.data || [];
-            console.log("VeLog", VeLog);
         }
 
     } catch (err) {
