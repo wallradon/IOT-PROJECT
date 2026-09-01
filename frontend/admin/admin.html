@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project IOT</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <header>
+        <img src="placeholder-300x300.png" alt="">
+        <h1 class="head-content">ระบบจัดการข้อมูลลูกบ้าน</h1>
+    </header>
+    <main class="main-content">
+        <nav>
+            <ul>
+                <li data-target="vehicle">VEHICLE DATA</li>
+                <li id="selectUs" data-target="user">USER DATA</li>
+            </ul>
+        </nav>
+        <!-- VEHICLE-->
+        <section class="page user-details active" id="page-vehicle">
+            <div style="width: 100%; max-width: 930px; display: flex; justify-content: center; margin-top: 20px;">
+                <div
+                    style="background-color: var(--color-secondary); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-align: center; color: white; width: 450px;">
+                    <h3 style="margin-bottom: 10px; font-weight: 500;">VEHICLE DATA (Grafana)</h3>
+                    <p style="font-size: 13px; color: #ccc; margin-bottom: 15px;">ระบบ Grafana Cloud
+                        ไม่อนุญาตให้ฝังหน้าเว็บ (Embed) ลงในระบบ</p>
+                    <a href="https://redcanyon1221.grafana.net/public-dashboards/6bc4a157b7ff484a899e6fb30f62d709"
+                        target="_blank"
+                        style="display: inline-block; background-color: #f39c12; color: #222; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 14px; transition: 0.2s;">
+                        เปิดดู Dashboard ในหน้าต่างใหม่ <i class="fas fa-external-link-alt"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="headUserData headVehicleData">
+                <h2>ประเภท</h2>
+                <h2>ทะเบียนรถ</h2>
+                <h2>เวลา เข้า - ออก</h2>
+            </div>
+            <section class="dataLoading" id="VehicleData">
+                <!-- <p class="loading-text">กำลังโหลดข้อมูล...</p> -->
+            </section>
+        </section>
+
+        <!-- user data -->
+        <section class="page user-details" id="page-user">
+            <div class="headUserData">
+                <h2>ลำดับ</h2>
+                <h2>เลขที่บ้าน</h2>
+            </div>
+            <section class="dataLoading" id="UserData">
+                <!-- <p class="loading-text">กำลังโหลดข้อมูล...</p> -->
+            </section>
+        </section>
+
+        <!-- user more details -->
+        <section class=" page moreUserde " id="page-userDetail">
+            <section class="dataLoading"></section>
+        </section>
+
+        <!-- vehicleDetail -->
+        <section class="page" id="page-vehicleDetail">
+            <section class="dataLoading"></section>
+        </section>
+    </main>
+    <script src="config.js"></script>
+    <script src="API.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

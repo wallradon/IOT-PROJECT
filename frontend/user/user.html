@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart-Village-Access-System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Header หลัก -->
+    <header>
+        <div class="logo-box">
+            <img src="logochicken.png" alt="Smart Village Logo" class="header-logo" onerror="this.style.display='none'">
+        </div>
+        <h1 class="head-content">ระบบจัดการข้อมูลลูกบ้าน</h1>
+        <button type="button" id="logoutBtn" class="logout-btn">ออกจากระบบ</button>
+    </header>
+
+    <main class="main-content">
+        <div class="content-area">
+            <!-- หน้า USER DATA -->
+            <section class="page active" id="page-user">
+                <section class="homeDetail" id="userDirectDetail">
+                </section>
+            </section>
+
+            <!-- หน้า ประวัติการเข้า-ออกของรถ -->
+            <section class="page" id="page-vehicleDetail"></section>
+        </div>
+    </main>
+
+    <!-- Modal ป๊อปอัพเพิ่มรถยนต์ใหม่ -->
+    <div id="addVehicleModal" class="login-modal-overlay" style="display: none;">
+        <div class="login-box" style="max-width: 380px;">
+            <h3 style="color: var(--color-primary); margin-bottom: 10px;">ลงทะเบียนเพิ่มยานพาหนะ</h3>
+            <p style="font-size: 13px; color: #666; margin-bottom: 15px;">กรอกข้อมูลรถยนต์เพื่อลงทะเบียนเข้าฐานข้อมูล
+            </p>
+
+            <form id="addVehicleForm" style="display: flex; flex-direction: column; gap: 12px;">
+                <input type="text" id="inputPlate" placeholder="ป้ายทะเบียน (เช่น กข1277)" required autocomplete="off"
+                    style="padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); font-family: Prompt; font-size: 14px;">
+                <select id="inputProvince" required
+                    style="padding: 12px; border-radius: 8px; border: 1px solid var(--color-border); font-family: Prompt; font-size: 14px; background-color: #fff; color: #495057; appearance: auto;">
+                    <option value="" disabled selected>เลือกจังหวัด</option>
+                    <option value="กรุงเทพมหานคร">กรุงเทพมหานคร</option>
+                    <option value="กระบี่">กระบี่</option>
+                    <option value="กาญจนบุรี">กาญจนบุรี</option>
+                    <option value="กาฬสินธุ์">กาฬสินธุ์</option>
+                    <option value="กำแพงเพชร">กำแพงเพชร</option>
+                    <option value="ขอนแก่น">ขอนแก่น</option>
+                    <option value="จันทบุรี">จันทบุรี</option>
+                    <option value="ฉะเชิงเทรา">ฉะเชิงเทรา</option>
+                    <option value="ชลบุรี">ชลบุรี</option>
+                    <option value="ชัยนาท">ชัยนาท</option>
+                    <option value="ชัยภูมิ">ชัยภูมิ</option>
+                    <option value="ชุมพร">ชุมพร</option>
+                    <option value="เชียงราย">เชียงราย</option>
+                    <option value="เชียงใหม่">เชียงใหม่</option>
+                    <option value="ตรัง">ตรัง</option>
+                    <option value="ตราด">ตราด</option>
+                    <option value="ตาก">ตาก</option>
+                    <option value="นครนายก">นครนายก</option>
+                    <option value="นครปฐม">นครปฐม</option>
+                    <option value="นครพนม">นครพนม</option>
+                    <option value="นครราชสีมา">นครราชสีมา</option>
+                    <option value="นครศรีธรรมราช">นครศรีธรรมราช</option>
+                    <option value="นครสวรรค์">นครสวรรค์</option>
+                    <option value="นนทบุรี">นนทบุรี</option>
+                    <option value="นราธิวาส">นราธิวาส</option>
+                    <option value="น่าน">น่าน</option>
+                    <option value="บึงกาฬ">บึงกาฬ</option>
+                    <option value="บุรีรัมย์">บุรีรัมย์</option>
+                    <option value="ปทุมธานี">ปทุมธานี</option>
+                    <option value="ประจวบคีรีขันธ์">ประจวบคีรีขันธ์</option>
+                    <option value="ปราจีนบุรี">ปราจีนบุรี</option>
+                    <option value="ปัตตานี">ปัตตานี</option>
+                    <option value="พระนครศรีอยุธยา">พระนครศรีอยุธยา</option>
+                    <option value="พะเยา">พะเยา</option>
+                    <option value="พังงา">พังงา</option>
+                    <option value="พัทลุง">พัทลุง</option>
+                    <option value="พิจิตร">พิจิตร</option>
+                    <option value="พิษณุโลก">พิษณุโลก</option>
+                    <option value="เพชรบุรี">เพชรบุรี</option>
+                    <option value="เพชรบูรณ์">เพชรบูรณ์</option>
+                    <option value="แพร่">แพร่</option>
+                    <option value="ภูเก็ต">ภูเก็ต</option>
+                    <option value="มหาสารคาม">มหาสารคาม</option>
+                    <option value="มุกดาหาร">มุกดาหาร</option>
+                    <option value="แม่ฮ่องสอน">แม่ฮ่องสอน</option>
+                    <option value="ยโสธร">ยโสธร</option>
+                    <option value="ยะลา">ยะลา</option>
+                    <option value="ร้อยเอ็ด">ร้อยเอ็ด</option>
+                    <option value="ระนอง">ระนอง</option>
+                    <option value="ระยอง">ระยอง</option>
+                    <option value="ราชบุรี">ราชบุรี</option>
+                    <option value="ลพบุรี">ลพบุรี</option>
+                    <option value="ลำปาง">ลำปาง</option>
+                    <option value="ลำพูน">ลำพูน</option>
+                    <option value="เลย">เลย</option>
+                    <option value="ศรีสะเกษ">ศรีสะเกษ</option>
+                    <option value="สกลนคร">สกลนคร</option>
+                    <option value="สงขลา">สงขลา</option>
+                    <option value="สตูล">สตูล</option>
+                    <option value="สมุทรปราการ">สมุทรปราการ</option>
+                    <option value="สมุทรสงคราม">สมุทรสงคราม</option>
+                    <option value="สมุทรสาคร">สมุทรสาคร</option>
+                    <option value="สระแก้ว">สระแก้ว</option>
+                    <option value="สระบุรี">สระบุรี</option>
+                    <option value="สิงห์บุรี">สิงห์บุรี</option>
+                    <option value="สุโขทัย">สุโขทัย</option>
+                    <option value="สุพรรณบุรี">สุพรรณบุรี</option>
+                    <option value="สุราษฎร์ธานี">สุราษฎร์ธานี</option>
+                    <option value="สุรินทร์">สุรินทร์</option>
+                    <option value="หนองคาย">หนองคาย</option>
+                    <option value="หนองบัวลำภู">หนองบัวลำภู</option>
+                    <option value="อ่างทอง">อ่างทอง</option>
+                    <option value="อำนาจเจริญ">อำนาจเจริญ</option>
+                    <option value="อุดรธานี">อุดรธานี</option>
+                    <option value="อุตรดิตถ์">อุตรดิตถ์</option>
+                    <option value="อุทัยธานี">อุทัยธานี</option>
+                    <option value="อุบลราชธานี">อุบลราชธานี</option>
+                </select>
+
+                <div style="text-align: left; font-size: 13px; color: #555; font-weight: 500;">ประเภท ยานพาหนะ:</div>
+                <select id="inputVehicleType"
+                    style="padding: 10px; border-radius: 8px; border: 1px solid var(--color-border); font-family: Prompt; font-size: 14px; background-color: white; color: #333; outline: none; cursor: pointer;">
+                    <option value="Car">รถยนต์ (Car)</option>
+                    <option value="Motorcycle">รถจักรยานยนต์ (Motorcycle)</option>
+                </select>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button type="button" class="submit-btn" id="btnCancelAddVehicle"
+                        style="background-color: #6c757d; flex: 1;">ยกเลิก</button>
+                    <button type="submit" class="submit-btn" style="flex: 1;">บันทึกข้อมูล</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal bar Code -->
+    <div id="qrModal" class="login-modal-overlay" style="display: none;">
+        <div class="login-box qr-modal-box">
+            <h3 class="qr-title">Barcode สำหรับแขก/ผู้ติดต่อ</h3>
+            <p class="qr-subtitle">แสดงต่อกล้อง/เครื่องสแกนบาร์โค้ดเพื่อเข้าหมู่บ้าน</p>
+
+            <div class="visitor-code-badge">
+                รหัสผ่านเข้าหมู่บ้าน: <span id="visitorCodeDisplay">-</span>
+            </div>
+
+            <div id="qrImageContainer" class="qr-img-wrap"
+                style="background: white; padding: 10px; border-radius: 8px;"></div>
+
+            <div id="qrDataText" class="qr-data-text"></div>
+
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <button type="button" class="submit-btn" id="btnDeleteBarcode"
+                    style="background-color: #dc3545; flex: 1;">🗑️ ยกเลิก/ลบบาร์โค้ด</button>
+                <button type="button" class="submit-btn" id="btnCloseQr"
+                    style="background-color: #6c757d; flex: 1;">ปิดหน้าต่าง</button>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="script.js"></script>
+</body>
+
+</html>
