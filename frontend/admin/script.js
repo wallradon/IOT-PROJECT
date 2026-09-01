@@ -407,8 +407,8 @@ if (logoutBtn) {
         localStorage.removeItem('token');
         localStorage.removeItem('userId');
         localStorage.removeItem('role');
-        
+
         // Redirect to login page
-        window.location.href = '../login/index.html';
+        window.location.href = '../../index.html';
     });
 }
