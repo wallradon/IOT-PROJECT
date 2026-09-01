@@ -1,11 +1,11 @@
 /**
  * Configuration Module
- * ศูนย์กลางจัดการการตั้งค่า API และ Environment Variables 
+ * Main center for API settings and Environment Variables 
  */
 var CONFIG = {
-    // กำหนดค่า API Base URL สากลสำหรับโปรเจกต์นี้
+    // Set global API Base URL for this project
     API_BASE_URL: `https://api-node-iot.onrender.com/api/`
 };
 
-// ป้องกันการแก้ไขค่า CONFIG
+// Prevent editing CONFIG values
 Object.freeze(CONFIG);

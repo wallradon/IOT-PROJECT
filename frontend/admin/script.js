@@ -1,18 +1,18 @@
 "use strict"
 
-// ===================== ตัวแปรสถานะหลักของแอป (Global App State) =====================
-const gUsers = "users/getUsers"; // pathข้อมูลลูกบ้าน
-const gVehicles = "vehicles/getVehicles"; // pathข้อมูลรถ
-const pVeLog = "logs/getLogs"; // pathข้อมูลรถเข้าออก
-let UsersData = [];       // ตัวแปรส่วนกลาง (Global Variable) เก็บข้อมูลลูกบ้าน
-let vehiclesData = [];    // ตัวแปรส่วนกลาง (Global Variable) เก็บข้อมูลยานพาหนะ
-let VeLog = [];    // ตัวแปรส่วนกลาง (Global Variable) เก็บข้อมูลเข้าออกยานพาหนะทั้งหมด
-let isLoading = true;     // สถานะการโหลด (Loading State)
-// fetchStatus ได้ถูกประกาศใช้ใน API.js เพื่อติดตามสถานะ HTTP Response ล่าสุด
+// ===================== Global App State =====================
+const gUsers = "users/getUsers"; // User data path
+const gVehicles = "vehicles/getVehicles"; // Vehicle data path
+const pVeLog = "logs/getLogs"; // Vehicle log path
+let UsersData = [];       // Global variable for user data
+let vehiclesData = [];    // Global variable for vehicle data
+let VeLog = [];           // Global variable for vehicle logs
+let isLoading = true;     // Loading State
+// fetchStatus is declared in API.js to track HTTP Response status
 
-const pages = document.querySelectorAll('.page');                  // ดึงหน้าเนื้อหาทั้งหมด (Page Elements)
+const pages = document.querySelectorAll('.page'); // Get all page elements
 
-// check token
+// Check token
 async function checkAuth() {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -29,7 +29,7 @@ async function checkAuth() {
         });
 
         if (!response.ok) {
-            // ถ้า Token หมดอายุ หรือไม่ถูกต้อง (401/403)
+            // If token is expired or invalid (401/403)
             alert('Time out, Please login again');
             localStorage.removeItem('token');
             window.location.href = '../login/login.html';
@@ -42,51 +42,51 @@ async function checkAuth() {
 checkAuth();
 
 
-// ===================== เมนู / การสลับหน้า (Menu Navigation & Page Router) =====================
-const navItems = document.querySelectorAll('nav li[data-target]'); // ดึงปุ่มเมนู (Nav Items)
+// ===================== Menu Navigation & Page Router =====================
+const navItems = document.querySelectorAll('nav li[data-target]'); // Get nav items
 
 /**
- * ฟังก์ชันสลับการแสดงผลของหน้าเพจ (Page Router)
- * @param {string} target - ชื่อหน้าปลายทางที่ต้องการสลับไปแสดงผล (ตรงกับส่วนต่อท้าย id ของหน้า เช่น 'home', 'user', 'vehicle')
- * @param {Object} params - พารามิเตอร์อื่นๆ ที่ต้องการส่งต่อไปให้หน้าเพจปลายทาง (เช่น { id: 1, carIndex: 0 })
+ * Function to change page (Page Router)
+ * @param {string} target - Target page name (e.g. 'home', 'user', 'vehicle')
+ * @param {Object} params - Other parameters for the target page (e.g. { id: 1, carIndex: 0 })
 */
 function showPage(target, params) {
-    // 1. ซ่อนหน้าทั้งหมด (Hide all pages)
+    // 1. Hide all pages
     pages.forEach(page => page.classList.remove('active'));
 
-    // 2. ยกเลิกไฮไลต์เมนู (Reset nav highlights)
+    // 2. Reset nav highlights
     navItems.forEach(li => li.classList.remove('user-select'));
 
-    // 3. แสดงหน้าเป้าหมาย (Show target page)
+    // 3. Show target page
     const targetPage = document.querySelector(`#page-${target}`);
     if (targetPage) {
         targetPage.classList.add('active');
-        renderUserPage(target, params);       // เรียกใช้ฟังก์ชันแสดงผล (Render Data)
+        renderUserPage(target, params); // Call render data function
     }
 
-    // 4. ไฮไลต์เมนูปัจจุบัน (Highlight active nav item)
+    // 4. Highlight active nav item
     const activeLi = document.querySelector(`nav li[data-target="${target}"]`);
     if (activeLi) activeLi.classList.add('user-select');
 }
 
-// ดักจับเหตุการณ์คลิก (Click Event) เพื่อสลับหน้า
+// Click Event to change page
 navItems.forEach(li => {
     li.addEventListener('click', (e) => {
-        e.preventDefault(); // ป้องกันพฤติกรรมเริ่มต้น (Prevent Default)
-        showPage(li.dataset.target); // เข้าถึงชื่อหน้าปลายทางผ่าน dataset.target และเปิดหน้านั้น
+        e.preventDefault(); // Prevent default behavior
+        showPage(li.dataset.target); // Get target from dataset and show page
     });
 });
 
-// เปิดหน้าแรก (หน้า home) ทันทีที่ผู้ใช้งานเข้าสู่ระบบเป็นค่าเริ่มต้น
+// Show home page first when user logs in
 showPage('vehicle');
 
 
 /**
- * อัปเดตข้อมูลในหน้าปัจจุบัน (Refresh Current Page)
- * ใช้หลังจากดึงข้อมูลจาก API (Fetch API) เสร็จแล้ว
+ * Refresh Current Page
+ * Use after fetch API is done
  */
 function refreshCurrentPage() {
-    // หาเมนูที่เปิดอยู่และอัปเดตหน้า (Re-render Active Page)
+    // Find active menu and re-render page
     const activeLi = document.querySelector('nav li.user-select');
     if (activeLi) {
         const target = activeLi.dataset.target;
@@ -94,39 +94,39 @@ function refreshCurrentPage() {
     }
 }
 
-// ===================== ตัวจัดการแสดงผล (Render Router) =====================
+// ===================== Render Router =====================
 /**
- * ตรวจสอบสถานะข้อมูลและแสดงผล (Render Page based on Data Status)
- * @param {string} target - หน้าปลายทาง
- * @param {Object} params - พารามิเตอร์
+ * Check data status and render page
+ * @param {string} target - Target page
+ * @param {Object} params - Parameters
  */
 function renderUserPage(target, params) {
-    // 1. ค้นหา element ของหน้าเพจที่ผู้ใช้เปิดอยู่
+    // 1. Find target page element
     const targetPage = document.querySelector(`#page-${target}`);
 
-    // 2. ค้นหาพื้นที่แสดงผลข้อความสถานะโหลด/ข้อผิดพลาดในหน้าเฉพาะนั้นๆ เพื่อไม่ให้กระทบต่อโครงสร้างหน้าอื่น
+    // 2. Find loading container in target page
     let loadingContainer = null;
     if (targetPage) {
         loadingContainer = targetPage.querySelector('.dataLoading') || targetPage.querySelector('#UserData');
     }
 
-    // 3. ตรวจสอบสถานะการดาวน์โหลด: หากยังดาวน์โหลดข้อมูลไม่สำเร็จ ให้แสดงข้อความสถานะกำลังโหลด (Loading)
+    // 3. Check loading status: If not done, show loading text
     if (isLoading) {
         if (loadingContainer) {
-            loadingContainer.innerHTML = `<p class="loading-text">กำลังดาวน์โหลดข้อมูล (Loading data...)</p>`;
+            loadingContainer.innerHTML = `<p class="loading-text">Loading data...</p>`;
         }
         return;
     }
 
-    // 4. ตรวจสอบข้อผิดพลาดในการโหลด: หากรหัส HTTP Status ไม่ถูกต้อง (ไม่อยู่ในช่วง 200-299) ให้แจ้งเตือนข้อผิดพลาด
+    // 4. Check error: If HTTP status is not 200-299, show error text
     if (fetchStatus < 200 || fetchStatus > 299) {
         if (loadingContainer) {
-            loadingContainer.innerHTML = `<p class="loading-text" style="color: red;">เกิดข้อผิดพลาดในการโหลดข้อมูล กรุณาลองใหม่อีกครั้ง (HTTP Code: ${fetchStatus})</p>`;
+            loadingContainer.innerHTML = `<p class="loading-text" style="color: red;">Error loading data. Please try again (HTTP Code: ${fetchStatus})</p>`;
         }
         return;
     }
 
-    // 5. หากดาวน์โหลดข้อมูลเสร็จสมบูรณ์ ให้นำข้อมูลมาแสดงผลแยกตามชื่อหน้า (target)
+    // 5. If download is complete, show data based on target page
     if (target === "user") {
         renderUserList(UsersData);
     } else if (target === "userDetail") {
@@ -138,25 +138,25 @@ function renderUserPage(target, params) {
     }
 }
 
-// ===================== Render หน้า VEHICLE DATA (รายการประวัติการเข้า-ออกของรถยนต์) =====================
+// ===================== Render VEHICLE DATA Page =====================
 /**
- * ฟังก์ชันจัดการ Render รายชื่อประเภทรถ, ป้ายทะเบียน และเวลาเข้า-ออกทั้งหมดที่มีในระบบลงในหน้า VEHICLE DATA
- * @param {Array} users - ชุดข้อมูลลูกบ้านทั้งหมดพร้อมรายการยานพาหนะ
+ * Function to render vehicle type, plate, and time in/out
+ * @param {Array} data - All user data with vehicles
  */
 function renderVehicleList(data) {
     const vehicleDataContainer = document.querySelector('#VehicleData');
-    if (!vehicleDataContainer) return; // ยุติหากไม่พบ container บนหน้าเว็บ
+    if (!vehicleDataContainer) return; // Stop if container not found
 
     let htmlContent = "";
-    let foundCount = 0; // ตัวแปรสำหรับนับจำนวนข้อมูลรถที่ประมวลผล
-    // วนลูปตรวจสอบข้อมูลผู้ใช้แต่ละราย
+    let foundCount = 0; // Count found vehicles
+    // Loop to check each user data
     data.forEach(d => {
-        // คัดกรองเฉพาะผู้ใช้ที่มีข้อมูลยานพาหนะลงทะเบียนไว้
-        const plate = d.plate || "-"; // ป้ายทะเบียนรถ
-        const type = d.type || "-";    // ประเภทรถ (เช่น รถยนต์, จักรยานยนต์)
+        // Filter only users with registered vehicles
+        const plate = d.plate || "-"; // Vehicle plate
+        const type = d.type || "-";   // Vehicle type (e.g. car, motorcycle)
         if (d.time_in) {
             foundCount++;
-            const recordText = `เข้า: ${d.time_in ?? '-'} | ออก: ${d.time_out ?? '-'}`;
+            const recordText = `In: ${d.time_in ?? '-'} | Out: ${d.time_out ?? '-'}`;
             htmlContent += `
                         <div class="User VehicleRow">
                             <h2>${type}</h2>
@@ -165,78 +165,78 @@ function renderVehicleList(data) {
                         </div>
                         `;
         } else {
-            // หากยังไม่มีประวัติการเข้า-ออกเลย ให้แสดงรายละเอียดข้อมูลรถพร้อมแจ้งเตือนว่ายังไม่มีประวัติ
+            // If no in/out records, show vehicle details and alert
             foundCount++;
             htmlContent += `
                     <div class="User VehicleRow">
                         <h2>${type}</h2>
                         <h2>${plate}</h2>
-                        <h2>ยังไม่มีประวัติเข้า-ออกในระบบ</h2>
+                        <h2>No entry/exit records</h2>
                     </div>
                     `;
         }
 
     });
 
-    // หากไม่พบรถของใครที่มีประวัติหรือลงทะเบียนไว้ในหมู่บ้านเลย ให้ขึ้นแจ้งเตือน
+    // If no vehicles found, show alert
     if (foundCount === 0) {
-        htmlContent = `<p class="loading-text">ไม่พบข้อมูลยานพาหนะในระบบeiei</p>`;
+        htmlContent = `<p class="loading-text">No vehicle data found</p>`;
     }
 
-    // // เขียนโครงสร้าง HTML ลงหน้าแสดงผล
+    // Write HTML to page
     vehicleDataContainer.innerHTML = htmlContent;
 }
 
 
-// ===================== Render หน้า USER DATA (รายการข้อมูลลูกบ้าน) =====================
+// ===================== Render USER DATA Page =====================
 /**
- * ฟังก์ชันสำหรับ Render ลำดับและเลขที่บ้านของผู้ใช้งานทั้งหมด
- * @param {Array} users - ข้อมูลรายชื่อผู้ใช้งานระบบทั้งหมด
+ * Function to render user numbers and house numbers
+ * @param {Array} users - All user data
  */
 function renderUserList(users) {
     const userDataContainer = document.querySelector('#UserData');
     if (!userDataContainer) return;
 
     let htmlContent = "";
-    // วนลูปสร้าง HTML รายชื่อลูกบ้าน
+    // Loop to create HTML for users
     users.filter(user => user.role === "member").forEach((user, index) => {
         htmlContent += `
         <div class="User">
             <h2>${index + 1}</h2>
             <h2>${user.houseNumber}</h2>
-            <!-- ลิงก์สำหรับกดเข้าไปดูรายละเอียดข้อมูลบ้านและผู้พักอาศัยเพิ่มเติม โดยอ้างอิง data-id -->
-            <a href="#" data-id="${user.id}" data-target="userDetail" >แสดงข้อมูลเพิ่มเติม</a>
+            <!-- Link to see user details using data-id -->
+            <a href="#" data-id="${user.id}" data-target="userDetail" >More info</a>
         </div>
         `;
     });
-    // นำ HTML ไปแปะในหน้าเว็บรวดเดียว เพื่อลด Reflow / Repaint ช่วยเพิ่มประสิทธิภาพความเร็ว
+    // Add HTML to page at once to reduce reflow/repaint
     userDataContainer.innerHTML = htmlContent;
 }
 
-// ===================== Render หน้ารายละเอียดผู้ใช้งานและยานพาหนะที่ลงทะเบียนไว้ (User Detail) =====================
+// ===================== Render User Detail Page =====================
 /**
- * ฟังก์ชันสร้างและเรนเดอร์ข้อมูลรายละเอียดเจ้าบ้านและรถยนต์ทุกคันที่เป็นเจ้าของ
- * @param {number} userId - รหัสประจำตัว (ID) ของลูกบ้านที่เลือก
+ * Function to render user details and vehicles
+ * @param {number} userId - User ID
  */
 function renderUserDetail(userId) {
-    // ค้นหาข้อมูลลูกบ้านโดยใช้ ID
+    // Find user by ID
     const user = UsersData.find(u => u.id === userId);
 
-    // ค้นหารถทุกคันของลูกบ้าน (ใช้ filter เพื่อดึงมาเป็น Array เพราะอาจมีหลายคัน)
-    // ก่อนใช้งาน vehiclesData อย่าลืมเช็คว่ามันเป็น Array หรือไม่
+    // Find all vehicles of this user
+    // Make sure vehiclesData is an array
     const userVehicles = Array.isArray(vehiclesData)
         ? vehiclesData.filter(v => v.user_id === userId)
         : [];
 
     const userDetailContainer = document.querySelector('#page-userDetail');
 
-    // ป้องกันแอปพลิเคชันค้างกรณีหากค้นหาผู้ใช้งานคนนี้ไม่พบในระบบ
+    // Prevent app from freezing if user is not found
     if (!user) {
-        userDetailContainer.innerHTML = `<p class="loading-text">ไม่พบข้อมูลผู้ใช้งาน</p>`;
+        userDetailContainer.innerHTML = `<p class="loading-text">User not found</p>`;
         return;
     }
 
-    // วนลูปดึงข้อมูลรถทั้งหมดของบ้านหลังนี้มาจัดทำรายการ HTML
+    // Loop to get all vehicles and create HTML
     let vehiclesHTML = '';
     if (userVehicles.length > 0) {
         userVehicles.forEach((vehicle, index) => {
@@ -244,12 +244,12 @@ function renderUserDetail(userId) {
             <div class="headVlist">
                 <p class="Vlist">${vehicle.plate}</p>
                 <p class="Vlist">${vehicle.type}</p>
-                <!-- ลิงก์สำหรับขอดูเวลาเข้า-ออกโดยเฉพาะของรถคันนี้ โดยส่ง id ลูกบ้าน และ index ของรถไปใน dataset -->
-                <a href="#" data-target="vehicleDetail" data-car-plate="${vehicle.plate}" data-id="${user.id}">แสดงข้อมูลเพิ่มเติม</a>
+                <!-- Link to see specific vehicle logs -->
+                <a href="#" data-target="vehicleDetail" data-car-plate="${vehicle.plate}" data-id="${user.id}">More info</a>
             </div>`;
         });
     } else {
-        // แถวว่างกรณีบ้านหลังนี้ไม่มีการลงทะเบียนยานพาหนะไว้
+        // Empty row if no vehicles
         vehiclesHTML = `<div class="headVlist">
                             <p class="Vlist">-</p>
                             <p class="Vlist">-</p>
@@ -257,66 +257,65 @@ function renderUserDetail(userId) {
                         </div>`;
     }
 
-    // อัปเดต HTML ของหน้าข้อมูลส่วนบุคคลและข้อมูลรถ
+    // Update HTML for user details and vehicles
     userDetailContainer.innerHTML = `
             <section class="homeDetail">
                 <div class="homeNumber">
-                    <p class="homeList">เลขที่บ้าน</p>
+                    <p class="homeList">House Number</p>
                     <p class="homeList">${user.houseNumber}</p>
                 </div>
                 <div class="nameOwner">
-                    <p class="homeList">ชื่อเจ้าบ้าน</p>
+                    <p class="homeList">Owner Name</p>
                     <p class="homeList">${user.ownerName}</p>
                 </div>
                 <div class="TimeData">
-                    <p class="homeList">วันที่เข้าอยู่: ${user.registerDate ?? '-'}</p>
-                    <p class="homeList">วันที่สมัครสมาชิก: ${user.memberStartDate ?? '-'} | วันหมดอายุการใช้งาน: ${user.memberExpireDate ?? '-'}</p>
+                    <p class="homeList">Register Date: ${user.registerDate ?? '-'}</p>
+                    <p class="homeList">Member Start Date: ${user.memberStartDate ?? '-'} | Expire Date: ${user.memberExpireDate ?? '-'}</p>
                 </div>
             </section>
             <section class="vehicleUser">
-                <h1 class="vehicleList">รายละเอียดยานพาหนะที่ลงทะเบียน</h1>
+                <h1 class="vehicleList">Registered Vehicles</h1>
                 <div class="headVlist">
-                    <h3 class="Vlist">ป้ายทะเบียน</h3>
-                    <h3 class="Vlist">ประเภทยานพาหนะ</h3>
-                    <h3 class="Vlist">ดูข้อมูลเจาะลึก</h3>
+                    <h3 class="Vlist">Plate</h3>
+                    <h3 class="Vlist">Type</h3>
+                    <h3 class="Vlist">Details</h3>
                 </div>
                 ${vehiclesHTML}
             </section>`;
 }
 
 
-// ===================== Render รายละเอียดรถคันเฉพาะและการจัดกลุ่มประวัติเวลาเข้า-ออก (Vehicle Detail) =====================
+// ===================== Render Vehicle Detail Page =====================
 /**
- * ฟังก์ชันสำหรับ Render ประวัติการเข้า-ออกของรถแต่ละคันอย่างละเอียดในรูปแบบของการ์ดตารางประวัติเวลา
- * @param {number} userId - รหัส ID ของเจ้าบ้านผู้ถือกรรมสิทธิ์รถ
- * @param {number} vehicleIndex - ลำดับของรถที่ระบุในรายการ Array (เช่น คันแรก = 0, คันสอง = 1)
+ * Function to render vehicle logs in detail
+ * @param {number} userId - User ID
+ * @param {number} vehiclePlate - Vehicle plate
  */
 function renderEachVehicle(userId, vehiclePlate) {
-    // หาข้อมูลรถของลูกบ้านหลัง
+    // Find user's vehicles
     const vData = vehiclesData.filter(p => p.user_id === userId);
-    // ดึงเฉพาะคันนั้นมาแสดง
+    // Find specific vehicle
     const vehicle = vData.find(v => v.plate === vehiclePlate);
-    // ดึงเวลาเข้าออก
-    // const timeStamp = VeLog.filter(t => t.plate === vehiclePlate && t.user_id === userId);
+    // Get logs for this vehicle
     const timeStamp = VeLog.filter(t => t.plate === vehiclePlate);
 
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
     if (!vData) {
-        vehicleDetailContainer.innerHTML = `<p class="loading-text">ไม่พบข้อมูลเจ้าบ้าน</p>`;
+        vehicleDetailContainer.innerHTML = `<p class="loading-text">Owner not found</p>`;
         return;
     }
 
-    // คัดกรองตัวรถยนต์โดยอ้างอิงลำดับดัชนีของ array รถ
+    // Check if vehicle exists
     if (!vehicle) {
-        vehicleDetailContainer.innerHTML = `<p class="loading-text">ไม่พบข้อมูลยานพาหนะของเจ้าบ้านหลังนี้</p>`;
+        vehicleDetailContainer.innerHTML = `<p class="loading-text">Vehicle not found for this owner</p>`;
         return;
     }
 
-    // จัดระเบียบชุดเวลาเข้า และ เวลาออก เพื่อแยกแสดงผลเป็นคนละฝั่งในแบบกริด (Grid Column)
+    // Organize in and out times for grid view
     let timeInHTML = '';
     let timeOutHTML = '';
 
-    // // ตรวจสอบว่ามีข้อมูลเวลาบันทึกเข้าออกบ้างหรือไม่
+    // Check if there are any logs
     if (timeStamp.length > 0) {
         timeStamp.forEach((timeRecord) => {
             timeInHTML += `
@@ -327,31 +326,31 @@ function renderEachVehicle(userId, vehiclePlate) {
             `;
         });
     } else {
-        // หากไม่มีข้อมูลประวัติใดๆ ในทะเบียนเลย
+        // If no records found
         timeInHTML += `<span class="time-record">-</span>`;
         timeOutHTML += `<span class="time-record">-</span>`;
     }
 
-    // สร้างเนื้อหาการ์ดข้อมูลประวัติรถยนต์แบบกริด
+    // Create HTML for vehicle card
     let htmlContent = `<div class="vehicle-card">
-    <!-- ส่วนแสดงหัวข้อการ์ดและวันลงทะเบียน -->
-    <div class="v-title">รายละเอียดข้อมูลยานพาหนะ (Vehicle Details)</div>
-    <div class="v-date">ลงทะเบียนเข้าระบบ: ${vehicle.registerDate ?? '-'} </div>
+    <!-- Card header and register date -->
+    <div class="v-title">Vehicle Details</div>
+    <div class="v-date">Register Date: ${vehicle.registerDate ?? '-'} </div>
 
-    <!-- ตารางแสดงรายละเอียดรถยนต์และบันทึกเวลา -->
+    <!-- Details and logs table -->
     <div class="v-grid">
-        <div class="v-item">ป้ายทะเบียน: ${vehicle.plate ?? '-'}</div>
-        <div class="v-item">ประเภทยานพาหนะ: ${vehicle.type ?? '-'}</div>
+        <div class="v-item">Plate: ${vehicle.plate ?? '-'}</div>
+        <div class="v-item">Type: ${vehicle.type ?? '-'}</div>
 
-        <div class="v-item" style="font-weight: bold;">ประวัติเวลาเข้า</div>
-        <div class="v-item" style="font-weight: bold;">ประวัติเวลาออก</div>
+        <div class="v-item" style="font-weight: bold;">Time In</div>
+        <div class="v-item" style="font-weight: bold;">Time Out</div>
 
-        <!-- รายการเวลาเข้า (ฝั่งซ้าย) -->
+        <!-- Time in list (Left) -->
         <div class="v-item v-time" id="time-in-list">
             ${timeInHTML}
         </div>
 
-        <!-- รายการเวลาออก (ฝั่งขวา) -->
+        <!-- Time out list (Right) -->
         <div class="v-item v-time" id="time-out-list">
             ${timeOutHTML}
         </div>
@@ -360,42 +359,56 @@ function renderEachVehicle(userId, vehiclePlate) {
     vehicleDetailContainer.innerHTML = htmlContent;
 }
 
-// ===================== ระบบดักจับเหตุการณ์คลิกแบบสากล (Event Delegation) =====================
-// ใช้ Event Delegation เพื่อดักจับคลิกใน .main-content ทำให้ไม่ต้องผูก Event (Event Listener) ใหม่ให้ปุ่มที่เพิ่งสร้าง
+// ===================== Global Click Event Delegation =====================
+// Use event delegation in .main-content to avoid adding new event listeners
 document.querySelector('.main-content').addEventListener('click', (e) => {
-    // ตรวจสอบว่าสิ่งที่คลิกคือปุ่ม/ลิงก์ที่มี attribute data-target หรือไม่
+    // Check if clicked element is a link/button with data-target
     const link = e.target.closest('a[data-target]');
-    if (!link) return; // หากเป็นการคลิกพื้นที่อื่นๆ ให้ข้ามการทำงานนี้ไป
+    if (!link) return; // Skip if clicked elsewhere
 
-    e.preventDefault(); // ยกเลิกพฤติกรรมของลิงก์ (Prevent Default)
+    e.preventDefault(); // Prevent default behavior
 
-    // ดึงข้อมูลที่เก็บใน HTML attribute (Destructuring Dataset)
+    // Get data from HTML attribute
     const { target, ...params } = link.dataset;
 
-    // สั่งสลับหน้าตามการควบคุมเส้นทางหน้าจอ พร้อมส่งพารามิเตอร์ไปด้วย
+    // Change page and send parameters
     showPage(target, params);
 });
 
 
 async function initData() {
     isLoading = true;
-    refreshCurrentPage(); // แสดง UI แบบ Loading ระหว่างรอข้อมูล
+    refreshCurrentPage(); // Show loading UI while fetching
 
     try {
-        // รอให้ทั้งข้อมูลลูกบ้านและข้อมูลรถโหลดเสร็จสมบูรณ์ทั้งคู่
+        // Wait for all data to load
         await Promise.all([
             getUser(gUsers),
             getVehicles(gVehicles),
             getVeLog(pVeLog)
         ]);
     } catch (error) {
-        console.error("เกิดข้อผิดพลาดในการโหลดข้อมูลเริ่มต้น:", error);
+        console.error("Error loading initial data:", error);
     } finally {
-        // เมื่อโหลดเสร็จ (ไม่ว่าจะสำเร็จหรือล้มเหลว) ค่อยปิดสถานะ Loading และอัปเดต UI ครั้งเดียว
+        // When done, stop loading and update UI
         isLoading = false;
         refreshCurrentPage();
     }
 }
 
-// เริ่มโหลดข้อมูลเมื่อโปรแกรมเริ่มทำงาน (Initialization)
+// Start loading data when app starts
 initData();
+
+// ===================== Logout System =====================
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+        // Remove token and data from localStorage
+        localStorage.removeItem('token');
+        localStorage.removeItem('userId');
+        localStorage.removeItem('role');
+        
+        // Redirect to login page
+        window.location.href = '../login/index.html';
+    });
+}
