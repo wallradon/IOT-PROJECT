@@ -5,10 +5,68 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Village VCCES</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;500;700&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: 'Kanit', sans-serif;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            background: -webkit-linear-gradient(45deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 1.5rem;
+            margin-bottom: 3rem;
+            color: #94a3b8;
+        }
+
+        .login-btn {
+            display: inline-block;
+            padding: 1.5rem 4rem;
+            font-size: 2rem;
+            font-weight: 700;
+            color: white;
+            text-decoration: none;
+            background: linear-gradient(135deg, #10b981 0%, #3b82f6 100%);
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4), 0 8px 10px -6px rgba(16, 185, 129, 0.1);
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 20px 25px -5px rgba(16, 185, 129, 0.5), 0 10px 10px -5px rgba(16, 185, 129, 0.2);
+        }
+
+        .login-btn:active {
+            transform: translateY(2px) scale(0.95);
+        }
+    </style>
 </head>
 
 <body>
-    <a href="frontend/login/login.html">Login</a>
+    <h1>กำลังดำเนินการสร้าง...</h1>
+    <p>ลอง Login ดูก่อนได้นะ 👇</p>
+    <a href="frontend/login/login.html" class="login-btn">เข้าสู่ระบบ (Login)</a>
 </body>
 
 </html>
