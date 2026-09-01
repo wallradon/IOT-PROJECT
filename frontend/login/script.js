@@ -179,9 +179,9 @@ async function handleLogin(e) {
                 const currentUser = usersList.find(u => String(u.id) === String(data.id));
                 if (currentUser) {
                     if (currentUser.role === 'admin') {
-                        window.location.href = '../../admin/admin.html';
+                        window.location.href = '../admin/admin.html';
                     } else {
-                        window.location.href = '../../user/user.html';
+                        window.location.href = '../user/user.html';
                     }
                 } else {
                     // ถ้าหาไม่เจอใน Cloud อาจจะเป็น User ทดสอบ ให้ยึดตามหน้าเดิม
