@@ -110,7 +110,7 @@ async function handleRegister(e) {
             const usersList = await usersRes.json();
 
             // หาข้อมูลที่ตรงกับบ้านเลขที่และชื่อ (reverse เพื่อหาข้อมูลที่เพิ่งสร้างล่าสุด)
-            const createdUser = usersList.reverse().find(u => u.houseNumber === houseno && u.ownerName === fullname);
+            const createdUser = [...usersList].reverse().find(u => u.houseNumber === houseno && u.ownerName === fullname);
 
             if (!createdUser) {
                 throw new Error('บันทึกข้อมูลลูกบ้านสำเร็จ แต่ไม่สามารถดึง ID ของผู้ใช้งานได้');
@@ -166,6 +166,7 @@ async function handleLogin(e) {
         if (response.ok) {
             alert('เข้าสู่ระบบสำเร็จ!');
             // เก็บ Token และ ID ที่หลังบ้านส่งกลับมา
+            console.log('token:', data.token);
             localStorage.setItem('token', data.token);
             // ส่ง ID
             if (data.id) localStorage.setItem('userId', data.id);
@@ -184,12 +185,12 @@ async function handleLogin(e) {
                         window.location.href = '../user/user.html';
                     }
                 } else {
-                    // ถ้าหาไม่เจอใน Cloud อาจจะเป็น User ทดสอบ ให้ยึดตามหน้าเดิม
-                    // window.location.href = '/dashboard.html';
+                    // ถ้าหาไม่เจอใน Cloud ให้กลับไปหน้า index.html
+                    window.location.href = '../../index.html';
                 }
             } catch (err) {
                 console.error('Error fetching users:', err);
-                window.location.href = '/dashboard.html';
+                window.location.href = '../../index.html';
             }
         } else {
             alert(data.message || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');

@@ -10,16 +10,46 @@ let VeLog = [];    // ตัวแปรส่วนกลาง (Global Variabl
 let isLoading = true;     // สถานะการโหลด (Loading State)
 // fetchStatus ได้ถูกประกาศใช้ใน API.js เพื่อติดตามสถานะ HTTP Response ล่าสุด
 
-// ===================== เมนู / การสลับหน้า (Menu Navigation & Page Router) =====================
-const navItems = document.querySelectorAll('nav li[data-target]'); // ดึงปุ่มเมนู (Nav Items)
 const pages = document.querySelectorAll('.page');                  // ดึงหน้าเนื้อหาทั้งหมด (Page Elements)
 
+// check token
+async function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = '../login/login.html';
+        return;
+    }
+
+    try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}auth/me`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            // ถ้า Token หมดอายุ หรือไม่ถูกต้อง (401/403)
+            alert('Time out, Please login again');
+            localStorage.removeItem('token');
+            window.location.href = '../login/login.html';
+        }
+    } catch (error) {
+        console.error('Error verifying token:', error);
+    }
+}
+
+checkAuth();
+
+
+// ===================== เมนู / การสลับหน้า (Menu Navigation & Page Router) =====================
+const navItems = document.querySelectorAll('nav li[data-target]'); // ดึงปุ่มเมนู (Nav Items)
 
 /**
  * ฟังก์ชันสลับการแสดงผลของหน้าเพจ (Page Router)
  * @param {string} target - ชื่อหน้าปลายทางที่ต้องการสลับไปแสดงผล (ตรงกับส่วนต่อท้าย id ของหน้า เช่น 'home', 'user', 'vehicle')
  * @param {Object} params - พารามิเตอร์อื่นๆ ที่ต้องการส่งต่อไปให้หน้าเพจปลายทาง (เช่น { id: 1, carIndex: 0 })
- */
+*/
 function showPage(target, params) {
     // 1. ซ่อนหน้าทั้งหมด (Hide all pages)
     pages.forEach(page => page.classList.remove('active'));
@@ -223,7 +253,7 @@ function renderUserDetail(userId) {
                 <p class="Vlist">${vehicle.plate}</p>
                 <p class="Vlist">${vehicle.type}</p>
                 <!-- ลิงก์สำหรับขอดูเวลาเข้า-ออกโดยเฉพาะของรถคันนี้ โดยส่ง id ลูกบ้าน และ index ของรถไปใน dataset -->
-                <a href="" data-target="vehicleDetail" data-car-plate="${vehicle.plate}" data-id="${user.id}">แสดงข้อมูลเพิ่มเติม</a>
+                <a href="#" data-target="vehicleDetail" data-car-plate="${vehicle.plate}" data-id="${user.id}">แสดงข้อมูลเพิ่มเติม</a>
             </div>`;
         });
     } else {

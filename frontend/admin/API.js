@@ -2,39 +2,7 @@
 // ดึงค่า URL หลักสำหรับการเชื่อมต่อ API มาจากตัวแปร CONFIG ใน config.js
 const API_BASE_URL = CONFIG.API_BASE_URL;
 
-/**
- * ฟังก์ชันสำหรับสร้างข้อมูลลูกบ้านใหม่ (POST Request)
- * @param {Object} userData - ข้อมูลผู้ใช้งานที่ต้องการบันทึกเข้าระบบ
- * @returns {Promise<Object>} ข้อมูลผลลัพธ์ตอบกลับจากเซิร์ฟเวอร์
- */
-async function createUser(userData) {
-    try {
-        // ส่งคำร้อง HTTP POST Request ไปยัง API_BASE_URL
-        const response = await fetch(`${API_BASE_URL}&field1=123`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData) // แปลงข้อมูล JavaScript Object เป็น JSON String
-        });
 
-        // ดึงผลลัพธ์การตอบกลับในรูปแบบ JSON
-        const result = await response.json();
-
-        // ตรวจสอบว่าการร้องขอสำเร็จหรือไม่ (HTTP Status อยู่ในช่วง 200-299)
-        if (!response.ok) {
-            // หากเกิดข้อผิดพลาด เช่น รหัสสถานะ 400 หรือ 409 ให้โยนข้อผิดพลาดพร้อมข้อความที่ได้รับ
-            throw new Error(result.message || 'เกิดข้อผิดพลาดในการสร้างผู้ใช้งาน');
-        }
-
-        console.log('สร้างผู้ใช้งานสำเร็จ:', result);
-        return result;
-
-    } catch (error) {
-        console.error('createUser error:', error.message);
-        throw error; // ส่งต่อ Error ให้ฝั่ง UI ไปจัดการต่อ (เช่น แสดง alert)
-    }
-}
 
 // ตัวแปรสำหรับเก็บ HTTP status จากการ fetch ข้อมูลรอบล่าสุด (0 = ยังไม่เคยลองดึงข้อมูล)
 let fetchStatus = 0;
@@ -65,7 +33,7 @@ async function getUser(path) {
         UsersData = data;
 
         console.log("getUser : ", UsersData);
-        
+
 
     } catch (err) {
         console.log("เกิดข้อผิดพลาดในการดึงข้อมูล:", err);
@@ -129,7 +97,7 @@ async function getVeLog(path) {
         const data = await res.json();
 
         // บันทึกข้อมูลลงใน getUsers (Global State)
-        if(data.success){
+        if (data.success) {
             VeLog = data.data || [];
             console.log("VeLog", VeLog);
         }

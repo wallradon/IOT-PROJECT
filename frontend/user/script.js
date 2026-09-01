@@ -1,5 +1,6 @@
 "use strict";
 
+
 document.addEventListener("DOMContentLoaded", () => {
     // ==========================================================
     // ส่วนที่ 1: กำหนด URL เชื่อมต่อ Cloud RESTful API Backend
@@ -27,6 +28,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // ส่วนที่ 3: ดึง Elements ทั้งหมดจากหน้า HTML
     // ==========================================================
     const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userId');
+            window.location.href = '../login/login.html';
+        });
+    }
     const navItems = document.querySelectorAll('nav li[data-target]');
     const pages = document.querySelectorAll('.page');
 
@@ -41,7 +49,36 @@ document.addEventListener("DOMContentLoaded", () => {
     const addVehicleModal = document.getElementById('addVehicleModal');
     const addVehicleForm = document.getElementById('addVehicleForm');
     const btnCancelAddVehicle = document.getElementById('btnCancelAddVehicle');
+    // ==========================================================
 
+    // check token
+    async function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '../login/login.html';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${BASE_API_URL}/auth/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                // ถ้า Token timeOut / false (401/403)
+                alert('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
+                localStorage.removeItem('token');
+                window.location.href = '../login/login.html';
+            }
+        } catch (error) {
+            console.error('Error verifying token:', error);
+        }
+    }
+
+    checkAuth();
     // ==========================================================
     // ส่วนที่ 4: ฟังก์ชันจัดการ Helper และการแปลงข้อความ
     // ==========================================================
@@ -477,7 +514,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function init() {
         if (!currentUserId) {
-            window.location.href = '../login/frontend/index.html';
+            window.location.href = '../login/login.html';
             return;
         }
 
@@ -490,7 +527,7 @@ document.addEventListener("DOMContentLoaded", () => {
             // เซสชั่นไม่ถูกต้อง หรือไม่มีบัญชีผู้ใช้นี้ในฐานข้อมูลแล้ว
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
-            window.location.href = '../login/frontend/index.html';
+            window.location.href = '../login/login.html';
         }
     }
 
