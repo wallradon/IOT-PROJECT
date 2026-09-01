@@ -462,7 +462,7 @@ document.addEventListener("DOMContentLoaded", () => {
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
             currentUser = null;
-            window.location.href = '../login/frontend/index.html';
+            window.location.href = '../../index.html';
         });
     }
 
