@@ -69,6 +69,8 @@ async function handleRegister(e) {
     if (username.length < 4) return alert('ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
     if (password.length < 6) return alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
 
+    showLoader();
+
     // เตรียมเรื่องวันที่
     const today = new Date();
     const nextYear = new Date(today);
@@ -145,6 +147,8 @@ async function handleRegister(e) {
     } catch (error) {
         console.error("Registration Error:", error);
         alert(error.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+    } finally {
+        hideLoader();
     }
 }
 /**
@@ -156,6 +160,13 @@ async function handleLogin(e) {
 
     const username = document.getElementById('login-username').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
+
+    if (!username || !password) {
+        return alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
+    }
+
+    showLoader();
+
     try {
         // ส่งข้อมูลไปตรวจสอบที่หลังบ้าน (Backend API)
         const response = await fetch(`https://api-node-iot.onrender.com/api/auth/login`, {
@@ -200,6 +211,8 @@ async function handleLogin(e) {
         }
     } catch (error) {
         alert('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้');
+    } finally {
+        hideLoader();
     }
 }
 
@@ -224,4 +237,18 @@ function closeSuccessModal() {
         document.getElementById('login-password').focus();
         window.recentRegisteredUsername = null;
     }
+}
+
+/**
+ * Show Loader
+ */
+function showLoader() {
+    document.getElementById('loading-overlay').classList.add('show');
+}
+
+/**
+ * Hide Loader
+ */
+function hideLoader() {
+    document.getElementById('loading-overlay').classList.remove('show');
 }
