@@ -1,6 +1,17 @@
 
 
 /**
+ * Wave Loader Controls
+ */
+function showLoader() {
+    document.getElementById('wave-loader-overlay').classList.add('show');
+}
+
+function hideLoader() {
+    document.getElementById('wave-loader-overlay').classList.remove('show');
+}
+
+/**
  * Switch between Login and Register tabs
  * @param {string} tabName - 'login' or 'register'
  */
@@ -69,8 +80,6 @@ async function handleRegister(e) {
     if (username.length < 4) return alert('ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
     if (password.length < 6) return alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
 
-    showLoader();
-
     // เตรียมเรื่องวันที่
     const today = new Date();
     const nextYear = new Date(today);
@@ -95,6 +104,8 @@ async function handleRegister(e) {
     };
 
     try {
+        showLoader();
+
 
         // 🚀 ยิง POST ที่ 1 : บันทึกข้อมูลลูกบ้านลง Cloud (Onrender)
         const dataResponse = await fetch('https://api-node-iot.onrender.com/api/users/createUser', {
@@ -160,14 +171,8 @@ async function handleLogin(e) {
 
     const username = document.getElementById('login-username').value.trim().toLowerCase();
     const password = document.getElementById('login-password').value;
-
-    if (!username || !password) {
-        return alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
-    }
-
-    showLoader();
-
     try {
+        showLoader();
         // ส่งข้อมูลไปตรวจสอบที่หลังบ้าน (Backend API)
         const response = await fetch(`https://api-node-iot.onrender.com/api/auth/login`, {
             method: 'POST',
@@ -237,18 +242,4 @@ function closeSuccessModal() {
         document.getElementById('login-password').focus();
         window.recentRegisteredUsername = null;
     }
-}
-
-/**
- * Show Loader
- */
-function showLoader() {
-    document.getElementById('loading-overlay').classList.add('show');
-}
-
-/**
- * Hide Loader
- */
-function hideLoader() {
-    document.getElementById('loading-overlay').classList.remove('show');
 }
