@@ -143,12 +143,12 @@ async function handleRegister(e) {
             if (!authResponse.ok) {
                 throw new Error(authResult.message || 'ไม่สามารถสร้างบัญชีผู้ใช้ (Login) ได้');
             }
-            
+
             // แสดง Custom Modal แทน Alert
             document.getElementById('modal-user-id').textContent = createdUser.id;
             document.getElementById('success-modal').classList.add('show');
             document.getElementById('form-register').reset();
-            
+
             // เก็บ username ไว้ใช้ตอนปิด modal เพื่อไปใส่ในหน้า login
             window.recentRegisteredUsername = username;
         }
@@ -183,7 +183,7 @@ async function handleLogin(e) {
         const data = await response.json();
 
         if (response.ok) {
-            alert('เข้าสู่ระบบสำเร็จ!');
+            // alert('เข้าสู่ระบบสำเร็จ!');
             // เก็บ Token และ ID ที่หลังบ้านส่งกลับมา
             console.log('token:', data.token);
             localStorage.setItem('token', data.token);
