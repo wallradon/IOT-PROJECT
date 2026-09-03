@@ -148,6 +148,25 @@
         </footer>
     </main>
 
+    <!-- Custom Modal for Registration Success -->
+    <div id="success-modal" class="custom-modal">
+        <div class="modal-content">
+            <div class="modal-icon-wrapper">
+                <i class="fa-solid fa-circle-check modal-icon"></i>
+            </div>
+            <h2 class="modal-title">ลงทะเบียนสมาชิกสำเร็จ!</h2>
+            <p class="modal-desc">ไอดีของลูกบ้านคือ: <strong id="modal-user-id"></strong></p>
+            <div class="telegram-box">
+                <i class="fa-brands fa-telegram"></i>
+                <p>กรุณานำไอดีนี้ไปใช้ลงทะเบียนกับบอท Telegram</p>
+                <a href="https://t.me/SmartVillageVCCESBot" target="_blank" class="telegram-link">@SmartVillageVCCESBot</a>
+            </div>
+            <button class="btn-submit modal-close-btn" onclick="closeSuccessModal()">
+                <span>ตกลง</span>
+            </button>
+        </div>
+    </div>
+
     <!-- Custom Script -->
     <script src="script.js"></script>
 </body>

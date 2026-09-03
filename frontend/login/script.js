@@ -130,11 +130,14 @@ async function handleRegister(e) {
             if (!authResponse.ok) {
                 throw new Error(authResult.message || 'ไม่สามารถสร้างบัญชีผู้ใช้ (Login) ได้');
             }
-            alert('ลงทะเบียนสมาชิกสำเร็จ!');
+            
+            // แสดง Custom Modal แทน Alert
+            document.getElementById('modal-user-id').textContent = createdUser.id;
+            document.getElementById('success-modal').classList.add('show');
             document.getElementById('form-register').reset();
-            switchTab('login');
-            document.getElementById('login-username').value = username;
-            document.getElementById('login-password').focus();
+            
+            // เก็บ username ไว้ใช้ตอนปิด modal เพื่อไปใส่ในหน้า login
+            window.recentRegisteredUsername = username;
         }
 
         // ถ้ายิงผ่านทั้ง 2 POST
@@ -208,4 +211,17 @@ async function handleLogin(e) {
 function handleForgotPassword(e) {
     e.preventDefault();
     alert('กรุณาติดต่อนิติบุคคล Smart Village VCCES เพื่อขอรีเซ็ตรหัสผ่าน');
+}
+
+/**
+ * Close Registration Success Modal
+ */
+function closeSuccessModal() {
+    document.getElementById('success-modal').classList.remove('show');
+    switchTab('login');
+    if (window.recentRegisteredUsername) {
+        document.getElementById('login-username').value = window.recentRegisteredUsername;
+        document.getElementById('login-password').focus();
+        window.recentRegisteredUsername = null;
+    }
 }
