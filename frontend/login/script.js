@@ -151,7 +151,7 @@ async function handleRegister(e) {
 async function handleLogin(e) {
     e.preventDefault();
 
-    const username = document.getElementById('login-username').value.trim();
+    const username = document.getElementById('login-username').value.trim().toLowerCase;
     const password = document.getElementById('login-password').value;
     try {
         // ส่งข้อมูลไปตรวจสอบที่หลังบ้าน (Backend API)
