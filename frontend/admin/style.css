@@ -145,6 +145,42 @@ header {
                 padding: 16px;
                 margin-right: 10px;
             }
+
+            .user-actions {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                justify-self: end;
+            }
+
+            .delete-user-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                background-color: #e74c3c;
+                color: var(--color-white);
+                border: none;
+                border-radius: 24px;
+                padding: 16px 20px;
+                font-size: 16px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s ease;
+            }
+
+            .delete-user-btn:hover {
+                background-color: #c0392b;
+                transform: translateY(-2px);
+            }
+        }
+
+        .User {
+            transition: all 0.2s ease;
+        }
+
+        .User:hover {
+            transform: scale(1.01);
+            background-color: #3b4255;
         }
 
         .headUserData {
@@ -266,9 +302,44 @@ header {
                 margin: 10px 10px;
             }
         }
-
     }
+
 }
+
+/* =========================================
+   UI สำหรับปุ่ม Edit User
+   ========================================= */
+.edit-user-btn-container {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.edit-user-btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+    color: var(--color-primary);
+    background-color: var(--color-white);
+    border: solid 2px var(--color-white);
+    border-radius: 24px;
+    padding: 16px 32px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.edit-user-btn:hover {
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border-color: var(--color-primary);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    transform: translateY(-2px);
+}
+
+
 
 
 /* =========================================
@@ -376,4 +447,138 @@ header {
 .v-item.v-time::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.5);
     border-radius: 10px;
+}
+
+/* =========================================
+   UI สำหรับหน้า Edit User Detail
+   ========================================= */
+#page-editUser {
+    padding: 20px;
+}
+.edit-user-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 40px auto;
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.edit-user-title {
+    color: var(--color-primary);
+    text-align: center;
+    margin-bottom: 20px;
+}
+.edit-user-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-label {
+    font-weight: 500;
+    color: var(--color-primary);
+    margin-bottom: 5px;
+}
+.form-input {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-family: 'Prompt', sans-serif;
+}
+.submit-btn {
+    margin-top: 10px;
+    padding: 12px;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-family: 'Prompt', sans-serif;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+.submit-btn:hover {
+    background-color: var(--color-secondary);
+}
+
+/* ===================== Custom Confirm Popup ===================== */
+.confirm-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(5px);
+}
+.confirm-popup-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+.confirm-popup-box {
+    background-color: var(--color-white);
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 400px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+}
+.confirm-popup-overlay.active .confirm-popup-box {
+    transform: translateY(0);
+}
+.popup-title {
+    color: var(--color-primary);
+    font-size: 24px;
+    margin-bottom: 15px;
+}
+.popup-message {
+    color: #555;
+    font-size: 16px;
+    margin-bottom: 25px;
+    line-height: 1.5;
+}
+.popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+.popup-cancel-btn, .popup-confirm-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: 'Prompt', sans-serif;
+}
+.popup-cancel-btn {
+    background-color: #e0e0e0;
+    color: #333;
+}
+.popup-cancel-btn:hover {
+    background-color: #ccc;
+}
+.popup-confirm-btn {
+    background-color: #e74c3c;
+    color: var(--color-white);
+}
+.popup-confirm-btn:hover {
+    background-color: #c0392b;
+    transform: translateY(-2px);
 }

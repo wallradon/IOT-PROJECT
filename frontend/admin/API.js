@@ -106,3 +106,33 @@ async function getVeLog(path) {
         if (fetchStatus === 0) fetchStatus = 500;
     }
 }
+
+/**
+ * Function to update user details via PUT Request
+ * @param {number|string} userId - User ID to update
+ * @param {Object} updateData - Data body to update
+ */
+async function updateUser(userId, updateData) {
+    try {
+        const fullUrl = new URL(`users/updateUser/${userId}`, API_BASE_URL);
+
+        const res = await fetch(fullUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(updateData)
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error updating user:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}

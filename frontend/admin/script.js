@@ -127,15 +127,19 @@ function renderUserPage(target, params) {
     }
 
     // 5. If download is complete, show data based on target page
-    if (target === "user") {
-        renderUserList(UsersData);
-    } else if (target === "userDetail") {
-        renderUserDetail(Number(params.id));
-    } else if (target === "vehicleDetail") {
-        renderEachVehicle(Number(params.id), String(params.carPlate));
-    } else if (target === "vehicle") {
-        renderVehicleList(VeLog);
-    }
+    const renderRoutes = {
+        user: () => renderUserList(UsersData),
+        userDetail: (params) => renderUserDetail(Number(params.id)),
+        editUser: (params) => renderEditUserPage(Number(params.id)),
+        vehicleDetail: (params) => renderEachVehicle(Number(params.id), String(params.carPlate)),
+        vehicle: () => renderVehicleList(VeLog)
+    };
+
+    if (renderRoutes[target]) {
+        renderRoutes[target](params);
+    } else {
+        console.log(`No render function found for target: ${target}`);
+    };
 }
 
 // ===================== Render VEHICLE DATA Page =====================
@@ -151,31 +155,20 @@ function renderVehicleList(data) {
     let foundCount = 0; // Count found vehicles
     // Loop to check each user data
     data.forEach(d => {
-        // Filter only users with registered vehicles
         const plate = d.plate || "-"; // Vehicle plate
         const type = d.type || "-";   // Vehicle type (e.g. car, motorcycle)
-        if (d.time_in) {
-            foundCount++;
-            const recordText = `In: ${d.time_in ?? '-'} | Out: ${d.time_out ?? '-'}`;
-            htmlContent += `
-                        <div class="User VehicleRow">
-                            <h2>${type}</h2>
-                            <h2>${plate}</h2>
-                            <h2>${recordText}</h2>
-                        </div>
-                        `;
-        } else {
-            // If no in/out records, show vehicle details and alert
-            foundCount++;
-            htmlContent += `
-                    <div class="User VehicleRow">
-                        <h2>${type}</h2>
-                        <h2>${plate}</h2>
-                        <h2>No entry/exit records</h2>
-                    </div>
-                    `;
-        }
 
+        foundCount++;
+        // ใช้ Ternary Operator และ Optional Chaining เพื่อกำหนดข้อความในบรรทัดเดียว
+        const recordText = d.time_in ? `In: ${d.time_in ?? '-'} | Out: ${d.time_out ?? '-'}` : "No entry/exit records";
+
+        htmlContent += `
+        <div class="User VehicleRow">
+            <h2>${type}</h2>
+            <h2>${plate}</h2>
+            <h2>${recordText}</h2>
+        </div>
+        `;
     });
 
     // If no vehicles found, show alert
@@ -201,14 +194,17 @@ function renderUserList(users) {
     // Loop to create HTML for users
     users.filter(user => user.role === "member").forEach((user, index) => {
         htmlContent += `
-        <div class="User">
+        <div class="User" data-id="${user.id}" data-target="userDetail" style="cursor: pointer;">
             <h2>${index + 1}</h2>
             <h2>${user.houseNumber}</h2>
-            <!-- Link to see user details using data-id -->
-            <a href="#" data-id="${user.id}" data-target="userDetail" >More info</a>
+            <!-- Action buttons -->
+            <div class="user-actions">
+                <button type="button" data-id="${user.id}" data-house-number="${user.houseNumber}" class="delete-user-btn">ลบข้อมูล (Delete)</button>
+            </div>
         </div>
         `;
     });
+    console.log(users);
     // Add HTML to page at once to reduce reflow/repaint
     userDataContainer.innerHTML = htmlContent;
 }
@@ -281,7 +277,10 @@ function renderUserDetail(userId) {
                     <h3 class="Vlist">Details</h3>
                 </div>
                 ${vehiclesHTML}
-            </section>`;
+                </section>
+                <div class="edit-user-btn-container">
+                <a href="#" data-target="editUser" data-id="${user.id}" class="edit-user-btn">แก้ไขข้อมูลลูกบ้าน (Edit User)</a>
+                </div>`;
 }
 
 
@@ -362,8 +361,30 @@ function renderEachVehicle(userId, vehiclePlate) {
 // ===================== Global Click Event Delegation =====================
 // Use event delegation in .main-content to avoid adding new event listeners
 document.querySelector('.main-content').addEventListener('click', (e) => {
-    // Check if clicked element is a link/button with data-target
-    const link = e.target.closest('a[data-target]');
+    // If clicked on the delete button, prevent default and do not navigate
+    const deleteBtn = e.target.closest('.delete-user-btn');
+    if (deleteBtn) {
+        e.preventDefault();
+        e.stopPropagation(); // Stop event bubbling to parent .User div
+
+        const userId = deleteBtn.dataset.id;
+        const houseNum = deleteBtn.dataset.houseNumber || userId;
+
+        // Use custom popup instead of native confirm
+        showConfirmPopup(
+            'ยืนยันการลบข้อมูล',
+            `คุณต้องการลบข้อมูลลูกบ้าน เลขที่บ้าน ${houseNum} ใช่หรือไม่?`,
+            () => {
+                console.log(`Deleting user ID: ${userId}, House: ${houseNum}`);
+                // TODO: Call delete API here
+            }
+        );
+
+        return; // Exit here so it doesn't try to navigate
+    }
+
+    // Check if clicked element is an element with data-target
+    const link = e.target.closest('[data-target]');
     if (!link) return; // Skip if clicked elsewhere
 
     e.preventDefault(); // Prevent default behavior
@@ -375,6 +396,84 @@ document.querySelector('.main-content').addEventListener('click', (e) => {
     showPage(target, params);
 });
 
+function renderEditUserPage(userId) {
+    const pageContainer = document.querySelector('#page-editUser');
+    if (!pageContainer) return;
+
+    const user = UsersData.find(u => u.id === userId) || {};
+
+    const houseNumber = user.houseNumber || "ERROR";
+    const ownerName = user.ownerName || "ERROR";
+    const registerDate = user.registerDate || "ERROR";
+    const memberStartDate = user.memberStartDate || "ERROR";
+    const memberExpireDate = user.memberExpireDate || "ERROR";
+
+    pageContainer.innerHTML = `
+        <div class="edit-user-container">
+            <h2 class="edit-user-title">แก้ไขข้อมูลลูกบ้าน (Edit User)</h2>
+            <form id="editUserForm" class="edit-user-form" data-user-id="${user.id || userId || ''}">
+                <div class="form-group">
+                    <label for="houseNumber" class="form-label">House Number</label>
+                    <input type="text" id="houseNumber" name="houseNumber" value="${houseNumber}" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="ownerName" class="form-label">Owner Name</label>
+                    <input type="text" id="ownerName" name="ownerName" value="${ownerName}" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="registerDate" class="form-label">Register Date</label>
+                    <input type="date" id="registerDate" name="registerDate" value="${registerDate}" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="memberStartDate" class="form-label">Member Start Date</label>
+                    <input type="date" id="memberStartDate" name="memberStartDate" value="${memberStartDate}" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label for="memberExpireDate" class="form-label">Member Expire Date</label>
+                    <input type="date" id="memberExpireDate" name="memberExpireDate" value="${memberExpireDate}" class="form-input">
+                </div>
+                <button type="submit" class="submit-btn">บันทึกข้อมูล (Save)</button>
+            </form>
+        </div>
+    `;
+
+    const form = document.querySelector("#editUserForm");
+    if (!form) return;
+
+    form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        // Convert YYYY-MM-DD to DD/MM/YYYY for API payload
+        const formatDate = (dateStr) => {
+            if (!dateStr || dateStr === "ERROR") return "";
+            if (dateStr.includes("-")) {
+                const [y, m, d] = dateStr.split("-");
+                return `${d}/${m}/${y}`;
+            }
+            return dateStr;
+        };
+
+        const targetUserId = form.dataset.userId || userId;
+        const updateData = {
+            houseNumber: form.houseNumber.value,
+            ownerName: form.ownerName.value,
+            registerDate: formatDate(form.registerDate.value),
+            memberStartDate: formatDate(form.memberStartDate.value),
+            memberExpireDate: formatDate(form.memberExpireDate.value),
+            role: "member"
+        };
+
+        console.log("PUT payload to API:", updateData);
+
+        const result = await updateUser(targetUserId, updateData);
+
+        if (result && result.success) {
+            alert(result.message || "User updated successfully");
+            await initData(); // Re-fetch updated data
+            showPage("userDetail", { id: Number(targetUserId) }); // Back to user detail
+        }
+    });
+}
 
 async function initData() {
     isLoading = true;
@@ -410,5 +509,35 @@ if (logoutBtn) {
 
         // Redirect to login page
         window.location.href = '../../index.html';
+    });
+}
+
+// ===================== Custom Confirm Popup =====================
+function showConfirmPopup(title, message, onConfirm) {
+    const popup = document.getElementById('custom-confirm-popup');
+    if (!popup) return;
+
+    const popupTitle = document.getElementById('popup-title');
+    const popupMessage = document.getElementById('popup-message');
+    const confirmBtn = document.getElementById('popup-confirm-btn');
+    const cancelBtn = document.getElementById('popup-cancel-btn');
+
+    popupTitle.textContent = title;
+    popupMessage.textContent = message;
+    popup.classList.add('active');
+
+    // Remove old event listeners by cloning
+    const newConfirmBtn = confirmBtn.cloneNode(true);
+    const newCancelBtn = cancelBtn.cloneNode(true);
+    confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
+    cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+    newConfirmBtn.addEventListener('click', () => {
+        popup.classList.remove('active');
+        if (onConfirm) onConfirm();
+    });
+
+    newCancelBtn.addEventListener('click', () => {
+        popup.classList.remove('active');
     });
 }
