@@ -402,7 +402,9 @@ nav ul .user-select {
     outline: none;
 }
 
+/* <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 1 บรรทัด 405-433 */
 /* Auth Modal & QR Modal UI */
+/* 1. คืนค่ากึ่งกลางสำหรับหน้าจอคอมพิวเตอร์ตามมาตรฐาน */
 .login-modal-overlay {
     position: fixed;
     top: 0;
@@ -413,7 +415,7 @@ nav ul .user-select {
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
-    align-items: center;
+    align-items: center; /* คืนค่าให้อยู่กึ่งกลางบนจอคอม */
     z-index: 9999;
 }
 
@@ -425,6 +427,9 @@ nav ul .user-select {
     width: 90%;
     max-width: 410px;
     box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+    max-height: 90vh;        /* ป้องกันกล่องยาวเกินความสูงจอ */
+    overflow-y: auto;        /* ให้เลื่อน Scroll ดูเนื้อหาและปุ่มได้เสมอ */
+    -webkit-overflow-scrolling: touch;
 }
 
 .login-logo {
@@ -496,8 +501,13 @@ nav ul .user-select {
     background-color: var(--color-secondary);
 }
 
+
+/* <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 3 บรรทัด 505-511 --> */
+/* 2. ปรับระยะการ์ดป๊อปอัปให้มีช่องไฟด้านบนพอดี ไม่ชิดจนอึดอัด */
 .qr-modal-box {
     max-width: 380px;
+    margin-top: 0;
+    padding: 24px 20px 20px; /* เพิ่มระยะด้านบน 24px ให้หัวการ์ดดูโปร่ง */
 }
 
 .qr-title {
@@ -530,10 +540,23 @@ nav ul .user-select {
     letter-spacing: 1px;
 }
 
+/* <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 4 บรรทัด 543-560 --> */
+/* คอนเทนเนอร์รูปบาร์โค้ด */
 .qr-img-wrap {
-    margin: 10px 0;
+    margin: 0 0 12px 0;
+    padding: 4px;
+    background: #ffffff;
+    border-radius: 8px;
     display: flex;
     justify-content: center;
+    align-items: center;
+}
+
+/* คุมขนาดภาพบาร์โค้ดให้อยู่ในสัดส่วนมาตรฐานเดิม */
+.qr-img-wrap img {
+    max-width: 280px;  /* จำกัดความกว้างไม่ให้ล้นเต็มการ์ด */
+    height: auto;
+    display: block;
 }
 
 .qr-data-text {
@@ -544,4 +567,18 @@ nav ul .user-select {
     background: #f4f4f4;
     padding: 8px;
     border-radius: 6px;
+}
+
+/* <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 5 บรรทัด 572-584 --> */
+/* 3. ดันขึ้นด้านบนเฉพาะเมื่อเปิดในโทรศัพท์มือถือ (กว้างไม่เกิน 600px) */
+@media (max-width: 600px) {
+    .login-modal-overlay {
+        align-items: flex-start; /* บนมือถือเท่านั้นที่จะดันขึ้นบน */
+        padding-top: 20px;       /* เว้นระยะห่างจากขอบบนจอโทรศัพท์กำลังสวย */
+    }
+
+    .qr-modal-box {
+        width: 92%;
+        padding: 18px 16px;
+    }
 }

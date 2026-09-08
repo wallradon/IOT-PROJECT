@@ -139,22 +139,25 @@
         </div>
     </div>
 
+    <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 1 บรรทัด 142-167 -->
     <!-- Modal bar Code -->
     <div id="qrModal" class="login-modal-overlay" style="display: none;">
         <div class="login-box qr-modal-box">
-            <h3 class="qr-title">Barcode สำหรับแขก/ผู้ติดต่อ</h3>
-            <p class="qr-subtitle">แสดงต่อกล้อง/เครื่องสแกนบาร์โค้ดเพื่อเข้าหมู่บ้าน</p>
+            <!-- 1. ดันรูปบาร์โค้ดขึ้นมาอยู่บนสุดของจอ -->
+            <div id="qrImageContainer" class="qr-img-wrap"
+                style="background: white; padding: 10px 4px; border-radius: 8px; margin-top: 0; margin-bottom: 12px;"></div>
 
-            <div class="visitor-code-badge">
+            <!-- 2. ข้อมูลรหัสและปุ่มกดอยู่ถัดลงมาด้านล่าง -->
+            <div class="visitor-code-badge" style="margin-bottom: 8px;">
                 รหัสผ่านเข้าหมู่บ้าน: <span id="visitorCodeDisplay">-</span>
             </div>
 
-            <div id="qrImageContainer" class="qr-img-wrap"
-                style="background: white; padding: 10px; border-radius: 8px;"></div>
+            <h3 class="qr-title" style="font-size: 1.05rem; margin-bottom: 4px;">Barcode สำหรับแขก/ผู้ติดต่อ</h3>
+            <p class="qr-subtitle" style="margin-bottom: 8px;">แสดงต่อกล้อง/เครื่องสแกนบาร์โค้ดเพื่อเข้าหมู่บ้าน</p>
 
-            <div id="qrDataText" class="qr-data-text"></div>
+            <div id="qrDataText" class="qr-data-text" style="margin-bottom: 12px;"></div>
 
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="display: flex; gap: 10px; margin-top: 5px;">
                 <button type="button" class="submit-btn" id="btnDeleteBarcode"
                     style="background-color: #dc3545; flex: 1;">🗑️ ยกเลิก/ลบบาร์โค้ด</button>
                 <button type="button" class="submit-btn" id="btnCloseQr"

@@ -297,6 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>`;
     }
 
+// <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 6 บรรทัด 316 แก้จาก: data-car-plate="${v.plate}" -->
     function renderDirectUserDetail() {
         const container = document.getElementById('userDirectDetail');
         if (!container || !currentUser) return;
@@ -312,7 +313,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     <p class="Vlist">${v.plate} ${v.province ? `(${v.province})` : ''}</p>
                     <p class="Vlist">${typeText}</p>
                     <div style="display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%;">
-                        <a href="#" data-target="vehicleDetail" data-car-plate="${v.plate}" data-car-id="${v.id}">ดูประวัติ</a>
+                        <a href="#" data-target="vehicleDetail" data-car-plate="${sanitizePlate(v.plate)}" data-car-id="${v.id}">ดูประวัติ</a>
                         <button type="button" class="btn-delete-v" data-v-id="${v.id}" data-v-plate="${v.plate}">🗑️ ลบ</button>
                     </div>
                 </div>`;
@@ -387,6 +388,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     localStorage.setItem('savedVisitorBarcode', currentActiveBarcode);
                 }
                 console.log("Generate new barcode:", currentActiveBarcode);
+
+        // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 2 บรรทัด 393 height=24 -->
                 const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${currentActiveBarcode}&scale=3&height=12&includetext`;
 
                 if (visitorCodeDisplay) visitorCodeDisplay.textContent = currentActiveBarcode;
@@ -503,6 +506,16 @@ document.addEventListener("DOMContentLoaded", () => {
             qrModal.style.display = 'none';
         });
     }
+
+    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 7 บรรทัด 510-518 เพิ่มระบบคลิกพื้นหลังสีน้ำเงินเพื่อปิด Modal -->
+    window.addEventListener('click', (e) => {
+        if (e.target === qrModal) {
+            qrModal.style.display = 'none';
+        }
+        if (e.target === addVehicleModal) {
+            addVehicleModal.style.display = 'none';
+        }
+    });
 
     document.querySelector('.main-content')?.addEventListener('click', (e) => {
         const link = e.target.closest('a[data-target]');

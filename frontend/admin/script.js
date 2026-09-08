@@ -39,7 +39,7 @@ async function checkAuth() {
     }
 }
 
-checkAuth();
+// checkAuth();
 
 
 // ===================== Menu Navigation & Page Router =====================
@@ -355,7 +355,7 @@ function renderEachVehicle(userId, vehiclePlate) {
         </div>
     </div>
     </div>`;
-    vehicleDetailContainer.innerHTML = htmlContent;
+        vehicleDetailContainer.innerHTML = htmlContent;
 }
 
 // ===================== Global Click Event Delegation =====================
@@ -369,17 +369,17 @@ document.querySelector('.main-content').addEventListener('click', (e) => {
 
         const userId = deleteBtn.dataset.id;
         const houseNum = deleteBtn.dataset.houseNumber || userId;
-
+        
         // Use custom popup instead of native confirm
         showConfirmPopup(
-            'ยืนยันการลบข้อมูล',
-            `คุณต้องการลบข้อมูลลูกบ้าน เลขที่บ้าน ${houseNum} ใช่หรือไม่?`,
+            'ยืนยันการลบข้อมูล', 
+            `คุณต้องการลบข้อมูลลูกบ้าน เลขที่บ้าน ${houseNum} ใช่หรือไม่?`, 
             () => {
                 console.log(`Deleting user ID: ${userId}, House: ${houseNum}`);
                 // TODO: Call delete API here
             }
         );
-
+        
         return; // Exit here so it doesn't try to navigate
     }
 
@@ -516,7 +516,7 @@ if (logoutBtn) {
 function showConfirmPopup(title, message, onConfirm) {
     const popup = document.getElementById('custom-confirm-popup');
     if (!popup) return;
-
+    
     const popupTitle = document.getElementById('popup-title');
     const popupMessage = document.getElementById('popup-message');
     const confirmBtn = document.getElementById('popup-confirm-btn');
