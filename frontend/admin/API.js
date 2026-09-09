@@ -136,3 +136,23 @@ async function updateUser(userId, updateData) {
         return null;
     }
 }
+async function deleteUser(userId) {
+    try {
+        const fullUrl = new URL(`users/deleteUser/${userId}`, API_BASE_URL);
+
+        const res = await fetch(fullUrl, {
+            method: 'DELETE',
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error deleting user:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}

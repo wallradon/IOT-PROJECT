@@ -582,3 +582,119 @@ header {
     background-color: #c0392b;
     transform: translateY(-2px);
 }
+
+/* ===================== Custom Toast Notifications (Uiverse.io by kyle1dev) ===================== */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+/* From Uiverse.io by kyle1dev */
+.modern-success-message {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    padding: 12px 20px 12px 15px;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    color: white;
+    font-family: "Prompt", "Poppins", sans-serif;
+    position: relative;
+    overflow: hidden;
+    min-width: 300px;
+    max-width: 420px;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease, box-shadow 0.3s ease;
+}
+
+.modern-success-message.show {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.modern-success-message.error-type {
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
+}
+
+.modern-success-message:hover {
+    transform: scale(1.03);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+}
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.3s;
+    line-height: 1;
+}
+
+.close-btn:hover {
+    opacity: 1;
+}
+
+.icon-wrapper {
+    background-color: rgba(255, 255, 255, 0.15);
+    padding: 12px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.success-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.text-wrapper .title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.text-wrapper .message {
+    margin-top: 4px;
+    font-size: 14px;
+    opacity: 0.9;
+    word-break: break-word;
+}
+
+.modern-success-message::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(
+        circle,
+        rgba(255, 255, 255, 0.1),
+        rgba(255, 255, 255, 0)
+    );
+    transform: rotate(45deg);
+    transition: all 0.5s ease-in-out;
+}
+
+.modern-success-message:hover::before {
+    transform: rotate(90deg);
+    opacity: 0.5;
+}

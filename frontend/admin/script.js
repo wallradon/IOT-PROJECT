@@ -355,12 +355,12 @@ function renderEachVehicle(userId, vehiclePlate) {
         </div>
     </div>
     </div>`;
-        vehicleDetailContainer.innerHTML = htmlContent;
+    vehicleDetailContainer.innerHTML = htmlContent;
 }
 
 // ===================== Global Click Event Delegation =====================
 // Use event delegation in .main-content to avoid adding new event listeners
-document.querySelector('.main-content').addEventListener('click', (e) => {
+document.querySelector('.main-content').addEventListener('click', async (e) => {
     // If clicked on the delete button, prevent default and do not navigate
     const deleteBtn = e.target.closest('.delete-user-btn');
     if (deleteBtn) {
@@ -369,17 +369,25 @@ document.querySelector('.main-content').addEventListener('click', (e) => {
 
         const userId = deleteBtn.dataset.id;
         const houseNum = deleteBtn.dataset.houseNumber || userId;
-        
+
         // Use custom popup instead of native confirm
         showConfirmPopup(
-            'ยืนยันการลบข้อมูล', 
-            `คุณต้องการลบข้อมูลลูกบ้าน เลขที่บ้าน ${houseNum} ใช่หรือไม่?`, 
-            () => {
-                console.log(`Deleting user ID: ${userId}, House: ${houseNum}`);
-                // TODO: Call delete API here
+            'ยืนยันการลบข้อมูล',
+            `คุณต้องการลบข้อมูลลูกบ้าน เลขที่บ้าน ${houseNum} ใช่หรือไม่?`,
+            async () => {
+                const result = await deleteUser(userId);
+                if (result && result.success) {
+                    showToast(`ลบข้อมูลลูกบ้าน "${houseNum}" เรียบร้อยแล้ว`, "สำเร็จ", "success");
+                    await getUser(gUsers); // Re-fetch users from API to update UsersData
+                    renderUserList(UsersData); // Refresh the list with updated data
+                    return true;
+                } else {
+                    showToast(result?.message || 'เกิดข้อผิดพลาดในการลบข้อมูล', "ข้อผิดพลาด", "error");
+                    return false;
+                }
             }
         );
-        
+
         return; // Exit here so it doesn't try to navigate
     }
 
@@ -468,9 +476,11 @@ function renderEditUserPage(userId) {
         const result = await updateUser(targetUserId, updateData);
 
         if (result && result.success) {
-            alert(result.message || "User updated successfully");
+            showToast(result.message || "อัปเดตข้อมูลสำเร็จแล้ว", "สำเร็จ", "success");
             await initData(); // Re-fetch updated data
             showPage("userDetail", { id: Number(targetUserId) }); // Back to user detail
+        } else {
+            showToast(result?.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล", "ข้อผิดพลาด", "error");
         }
     });
 }
@@ -516,7 +526,7 @@ if (logoutBtn) {
 function showConfirmPopup(title, message, onConfirm) {
     const popup = document.getElementById('custom-confirm-popup');
     if (!popup) return;
-    
+
     const popupTitle = document.getElementById('popup-title');
     const popupMessage = document.getElementById('popup-message');
     const confirmBtn = document.getElementById('popup-confirm-btn');
@@ -540,4 +550,68 @@ function showConfirmPopup(title, message, onConfirm) {
     newCancelBtn.addEventListener('click', () => {
         popup.classList.remove('active');
     });
+}
+
+// ===================== Modern Custom Toast Alert (Uiverse.io by kyle1dev) =====================
+/**
+ * Show modern success/error toast message
+ * @param {string} message - Message body
+ * @param {string} title - Message title (Default: "Success")
+ * @param {string} type - "success" or "error"
+ * @param {number} duration - Auto close timeout in ms
+ */
+function showToast(message, title = "Success", type = "success", duration = 3500) {
+    let container = document.getElementById('toast-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+
+    const toast = document.createElement('div');
+    toast.className = `modern-success-message ${type === 'error' ? 'error-type' : ''}`;
+
+    const iconSvg = type === 'error'
+        ? `<svg stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="success-icon">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+            <circle r="10" cy="12" cx="12"></circle>
+           </svg>`
+        : `<svg stroke-linejoin="round" stroke-linecap="round" stroke-width="2" stroke="currentColor" fill="none" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="success-icon">
+            <path d="M9 12l2 2 4-4"></path>
+            <circle r="10" cy="12" cx="12"></circle>
+           </svg>`;
+
+    toast.innerHTML = `
+        <!-- From Uiverse.io by kyle1dev -->
+        <button class="close-btn">&times;</button>
+        <div class="icon-wrapper">
+            ${iconSvg}
+        </div>
+        <div class="text-wrapper">
+            <div class="title">${title}</div>
+            <div class="message">${message}</div>
+        </div>
+    `;
+
+    container.appendChild(toast);
+
+    // Trigger animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    const removeToast = () => {
+        toast.classList.remove('show');
+        toast.addEventListener('transitionend', () => {
+            if (toast.parentNode) toast.parentNode.removeChild(toast);
+        });
+    };
+
+    toast.querySelector('.close-btn').addEventListener('click', removeToast);
+
+    if (duration > 0) {
+        setTimeout(removeToast, duration);
+    }
 }
