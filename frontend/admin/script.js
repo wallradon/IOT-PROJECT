@@ -451,12 +451,12 @@ function renderEditUserPage(userId) {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
 
-        // Convert YYYY-MM-DD to DD/MM/YYYY for API payload
+        // Convert YYYY-MM-DD to DD-MM-YYYY for API payload
         const formatDate = (dateStr) => {
             if (!dateStr || dateStr === "ERROR") return "";
             if (dateStr.includes("-")) {
                 const [y, m, d] = dateStr.split("-");
-                return `${d}/${m}/${y}`;
+                return `${d}-${m}-${y}`;
             }
             return dateStr;
         };
