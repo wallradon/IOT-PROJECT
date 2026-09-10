@@ -1,5 +1,3 @@
-
-
 /**
  * Wave Loader Controls
  */
@@ -88,6 +86,7 @@ async function handleRegister(e) {
 
     // 📦 Payload 1: สำหรับระบบ Login (เก็บแค่ Username / Password)
     const authPayload = {
+        userID: "",
         username: username,
         password: password
     };

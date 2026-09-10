@@ -156,3 +156,50 @@ async function deleteUser(userId) {
         return null;
     }
 }
+
+async function deleteVehicle(vehicleId) {
+    try {
+        const fullUrl = new URL(`vehicles/deleteVehicle/${vehicleId}`, API_BASE_URL);
+
+        const res = await fetch(fullUrl, {
+            method: 'DELETE',
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error deleting vehicle:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}
+
+
+async function updateAccount(userId, accountData) {
+    try {
+        const fullUrl = new URL(`auth/updateAccount/${userId}`, API_BASE_URL);
+
+        const res = await fetch(fullUrl, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(accountData)
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error updating account:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}

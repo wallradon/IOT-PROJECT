@@ -217,7 +217,7 @@ function renderUserList(users) {
 function renderUserDetail(userId) {
     // Find user by ID
     const user = UsersData.find(u => u.id === userId);
-
+    console.log(user);
     // Find all vehicles of this user
     // Make sure vehiclesData is an array
     const userVehicles = Array.isArray(vehiclesData)
@@ -391,6 +391,32 @@ document.querySelector('.main-content').addEventListener('click', async (e) => {
         return; // Exit here so it doesn't try to navigate
     }
 
+    const deleteVehicleBtn = e.target.closest('.delete-vehicle-btn');
+    if (deleteVehicleBtn) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const vehicleId = deleteVehicleBtn.dataset.id;
+        const plate = deleteVehicleBtn.dataset.plate;
+
+        showConfirmPopup(
+            'ยืนยันการนำรถออก',
+            `คุณต้องการนำรถทะเบียน ${plate} ออกจากรายการหรือไม่? (ข้อมูลจะถูกลบจริงเมื่อกดยืนยันบันทึกข้อมูล)`,
+            () => {
+                const form = document.querySelector("#editUserForm");
+                if (form) {
+                    let pending = form.dataset.pendingDeletes ? JSON.parse(form.dataset.pendingDeletes) : [];
+                    pending.push(vehicleId);
+                    form.dataset.pendingDeletes = JSON.stringify(pending);
+
+                    const row = deleteVehicleBtn.closest('.edit-vehicle-row');
+                    if (row) row.remove();
+                }
+            }
+        );
+        return;
+    }
+
     // Check if clicked element is an element with data-target
     const link = e.target.closest('[data-target]');
     if (!link) return; // Skip if clicked elsewhere
@@ -412,9 +438,51 @@ function renderEditUserPage(userId) {
 
     const houseNumber = user.houseNumber || "ERROR";
     const ownerName = user.ownerName || "ERROR";
-    const registerDate = user.registerDate || "ERROR";
-    const memberStartDate = user.memberStartDate || "ERROR";
-    const memberExpireDate = user.memberExpireDate || "ERROR";
+    const formatDateForInput = (dateStr) => {
+        if (!dateStr || dateStr === "ERROR") return "";
+        if (dateStr.includes("-")) {
+            const parts = dateStr.split("-");
+            if (parts[0].length === 2 && parts[2].length === 4) { // DD-MM-YYYY -> YYYY-MM-DD
+                return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            }
+        }
+        return dateStr;
+    };
+
+    const registerDate = formatDateForInput(user.registerDate || "ERROR");
+    const memberStartDate = formatDateForInput(user.memberStartDate || "ERROR");
+    const memberExpireDate = formatDateForInput(user.memberExpireDate || "ERROR");
+
+    const userVehicles = Array.isArray(vehiclesData)
+        ? vehiclesData.filter(v => v.user_id === userId)
+        : [];
+
+    let vehiclesHTML = `
+        <div class="edit-vehicles-container">
+            <h3 class="edit-vehicles-title">ข้อมูลรถ (Vehicles)</h3>
+            <div class="edit-vehicles-header">
+                <div class="Vlist">Plate</div>
+                <div class="Vlist">Type</div>
+                <div class="Vlist actions-col">Actions</div>
+            </div>
+    `;
+
+    if (userVehicles.length > 0) {
+        userVehicles.forEach((vehicle) => {
+            vehiclesHTML += `
+            <div class="edit-vehicle-row">
+                <div class="Vlist">${vehicle.plate}</div>
+                <div class="Vlist">${vehicle.type}</div>
+                <div class="vehicle-actions">
+                    <button type="button" class="delete-vehicle-btn" data-id="${vehicle.id}" data-plate="${vehicle.plate}">ลบ</button>
+                </div>
+            </div>`;
+        });
+    } else {
+        vehiclesHTML += `<div class="edit-vehicle-empty">- ไม่มีข้อมูลรถ (No vehicles found) -</div>`;
+    }
+
+    vehiclesHTML += `</div>`;
 
     pageContainer.innerHTML = `
         <div class="edit-user-container">
@@ -429,6 +497,14 @@ function renderEditUserPage(userId) {
                     <input type="text" id="ownerName" name="ownerName" value="${ownerName}" class="form-input">
                 </div>
                 <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" name="username" value="${user.username || ''}" class="form-input" placeholder="ใส่ Username ใหม่...">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)</label>
+                    <input type="password" id="password" name="password" placeholder="ใส่รหัสผ่านใหม่..." class="form-input">
+                </div>
+                <div class="form-group">
                     <label for="registerDate" class="form-label">Register Date</label>
                     <input type="date" id="registerDate" name="registerDate" value="${registerDate}" class="form-input">
                 </div>
@@ -440,7 +516,10 @@ function renderEditUserPage(userId) {
                     <label for="memberExpireDate" class="form-label">Member Expire Date</label>
                     <input type="date" id="memberExpireDate" name="memberExpireDate" value="${memberExpireDate}" class="form-input">
                 </div>
-                <button type="submit" class="submit-btn">บันทึกข้อมูล (Save)</button>
+                
+                ${vehiclesHTML}
+
+                <button type="submit" class="submit-btn" style="margin-top: 20px;">บันทึกข้อมูล (Save)</button>
             </form>
         </div>
     `;
@@ -475,8 +554,39 @@ function renderEditUserPage(userId) {
 
         const result = await updateUser(targetUserId, updateData);
 
+        let accountError = false;
+        if (form.username.value || form.password.value) {
+            const accountData = {};
+            if (form.username.value) accountData.username = form.username.value;
+            if (form.password.value) accountData.password = form.password.value;
+
+            if (Object.keys(accountData).length > 0) {
+                const accountResult = await updateAccount(targetUserId, accountData);
+                if (!accountResult || !accountResult.success) {
+                    accountError = true;
+                }
+            }
+        }
+
         if (result && result.success) {
-            showToast(result.message || "อัปเดตข้อมูลสำเร็จแล้ว", "สำเร็จ", "success");
+            const pendingDeletes = form.dataset.pendingDeletes ? JSON.parse(form.dataset.pendingDeletes) : [];
+            let deleteErrors = 0;
+
+            for (const vId of pendingDeletes) {
+                const delRes = await deleteVehicle(vId);
+                if (!delRes || !delRes.success) deleteErrors++;
+            }
+
+            if (deleteErrors > 0 && accountError) {
+                showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถและแก้ไขบัญชี`, "เตือน", "error");
+            } else if (deleteErrors > 0) {
+                showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถบางคัน`, "เตือน", "error");
+            } else if (accountError) {
+                showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการแก้ไขรหัสผ่าน/Username`, "เตือน", "error");
+            } else {
+                showToast(result.message || "บันทึกข้อมูลสำเร็จแล้ว", "สำเร็จ", "success");
+            }
+
             await initData(); // Re-fetch updated data
             showPage("userDetail", { id: Number(targetUserId) }); // Back to user detail
         } else {
