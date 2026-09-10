@@ -727,9 +727,12 @@ function renderEditUserPage(userId) {
         const updateData = {
             houseNumber: form.houseNumber.value,
             ownerName: form.ownerName.value,
-            role: "member",
-            Telegram_ID: user.Telegram_ID || ""
+            role: "member"
         };
+
+        if (user.Telegram_ID !== undefined) {
+            updateData.Telegram_ID = user.Telegram_ID;
+        }
 
         if (form.registerDate.value) updateData.registerDate = formatDate(form.registerDate.value);
         if (form.memberStartDate.value) updateData.memberStartDate = formatDate(form.memberStartDate.value);
@@ -773,7 +776,7 @@ function renderEditUserPage(userId) {
             }
 
             await initData(); // Re-fetch updated data
-            console.log("usersData", usersData);
+            console.log("PUT UsersData: ", UsersData);
             showPage("userDetail", { id: Number(ID_USER) }); // Back to user detail
         } else {
             showToast(result?.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล", "ข้อผิดพลาด", "error");
