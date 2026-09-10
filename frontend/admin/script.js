@@ -57,12 +57,18 @@ checkAuth();
 // ===================== Menu Navigation & Page Router =====================
 const navItems = document.querySelectorAll('nav li[data-target]'); // Get nav items
 
+let currentPageParams = null; // Store current params for refreshing
+
 /**
  * Function to change page (Page Router)
  * @param {string} target - Target page name (e.g. 'home', 'user', 'vehicle')
  * @param {Object} params - Other parameters for the target page (e.g. { id: 1, carIndex: 0 })
 */
 function showPage(target, params) {
+    if (params !== undefined) {
+        currentPageParams = params || null;
+    }
+
     // 1. Hide all pages
     pages.forEach(page => page.classList.remove('active'));
 
@@ -73,7 +79,7 @@ function showPage(target, params) {
     const targetPage = document.querySelector(`#page-${target}`);
     if (targetPage) {
         targetPage.classList.add('active');
-        renderUserPage(target, params); // Call render data function
+        renderUserPage(target, currentPageParams); // Call render data function
     }
 
     // 4. Highlight active nav item
@@ -102,7 +108,7 @@ function refreshCurrentPage() {
     const activeLi = document.querySelector('nav li.user-select');
     if (activeLi) {
         const target = activeLi.dataset.target;
-        renderUserPage(target, null);
+        renderUserPage(target, currentPageParams);
     }
 }
 
@@ -119,7 +125,10 @@ function renderUserPage(target, params) {
     // 2. Find loading container in target page
     let loadingContainer = null;
     if (targetPage) {
-        loadingContainer = targetPage.querySelector('.dataLoading') || targetPage.querySelector('#UserData');
+        loadingContainer = targetPage.querySelector('.dataLoading') || targetPage.querySelector('#UserData') || targetPage.querySelector('#VehicleData');
+        if (!loadingContainer) {
+            loadingContainer = targetPage;
+        }
     }
 
     // 3. Check loading status: If not done, show loading text
@@ -150,9 +159,9 @@ function renderUserPage(target, params) {
     // 5. If download is complete, show data based on target page
     const renderRoutes = {
         user: () => renderUserList(UsersData),
-        userDetail: (params) => renderUserDetail(Number(params.id)),
-        editUser: (params) => renderEditUserPage(Number(params.id)),
-        vehicleDetail: (params) => renderEachVehicle(Number(params.id), String(params.carPlate)),
+        userDetail: (params) => renderUserDetail(Number(params?.id)),
+        editUser: (params) => renderEditUserPage(Number(params?.id)),
+        vehicleDetail: (params) => renderEachVehicle(Number(params?.id), String(params?.carPlate)),
         vehicle: () => renderVehicleList(VeLog)
     };
 
@@ -397,7 +406,7 @@ function renderEachVehicle(userId, vehiclePlate) {
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
     vehicleDetailContainer.replaceChildren();
 
-    if (!vData || vData.length === 0) {
+    if (vData.length === 0) {
         const p = document.createElement('p');
         p.className = 'loading-text';
         p.textContent = 'Owner not found';
@@ -522,7 +531,7 @@ document.querySelector('.main-content').addEventListener('click', async (e) => {
 
         showConfirmPopup(
             'ยืนยันการนำรถออก',
-            `คุณต้องการนำรถทะเบียน ${escapeHTML(plate)} ออกจากรายการหรือไม่? (ข้อมูลจะถูกลบจริงเมื่อกดยืนยันบันทึกข้อมูล)`,
+            `คุณต้องการนำรถทะเบียน ${plate} ออกจากรายการหรือไม่? (ข้อมูลจะถูกลบจริงเมื่อกดยืนยันบันทึกข้อมูล)`,
             () => {
                 const form = document.querySelector("#editUserForm");
                 if (form) {
@@ -562,14 +571,17 @@ function renderEditUserPage(userId) {
     const houseNumber = user.houseNumber || "ERROR";
     const ownerName = user.ownerName || "ERROR";
     const formatDateForInput = (dateStr) => {
-        if (!dateStr || dateStr === "ERROR") return "";
+        if (!dateStr || dateStr === "ERROR" || dateStr.trim() === "") return "";
         if (dateStr.includes("-")) {
             const parts = dateStr.split("-");
             if (parts[0].length === 2 && parts[2].length === 4) { // DD-MM-YYYY -> YYYY-MM-DD
                 return `${parts[2]}-${parts[1]}-${parts[0]}`;
             }
+            if (parts[0].length === 4 && parts[2].length === 2) { // Already YYYY-MM-DD
+                return dateStr;
+            }
         }
-        return dateStr;
+        return "";
     };
 
     const registerDate = formatDateForInput(user.registerDate || "ERROR");
@@ -592,7 +604,7 @@ function renderEditUserPage(userId) {
     form.className = 'edit-user-form';
     form.dataset.userId = user.id || userId || '';
 
-    const createFormGroup = (id, labelText, type, value, placeholder) => {
+    const createFormGroup = (id, labelText, type, value, placeholder, autocomplete) => {
         const group = document.createElement('div');
         group.className = 'form-group';
         const label = document.createElement('label');
@@ -606,6 +618,7 @@ function renderEditUserPage(userId) {
         input.className = 'form-input';
         if (value !== undefined) input.value = value;
         if (placeholder) input.placeholder = placeholder;
+        if (autocomplete) input.autocomplete = autocomplete;
         group.append(label, input);
         return group;
     };
@@ -613,8 +626,9 @@ function renderEditUserPage(userId) {
     form.append(
         createFormGroup('houseNumber', 'House Number', 'text', houseNumber),
         createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
-        createFormGroup('username', 'Username', 'text', user.username || '', 'ใส่ Username ใหม่...'),
-        createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...'),
+        createFormGroup('username', 'Username', 'text', user.username || '', 'ใส่ Username ใหม่...', 'username'),
+        createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...', 'new-password'),
+        createFormGroup('confirmPassword', 'Confirm New Password (ปล่อยว่างหากไม่เปลี่ยน)', 'password', '', 'ยืนยันรหัสผ่านใหม่...', 'new-password'),
         createFormGroup('registerDate', 'Register Date', 'date', registerDate),
         createFormGroup('memberStartDate', 'Member Start Date', 'date', memberStartDate),
         createFormGroup('memberExpireDate', 'Member Expire Date', 'date', memberExpireDate)
@@ -692,23 +706,33 @@ function renderEditUserPage(userId) {
 
         // Convert YYYY-MM-DD to DD-MM-YYYY for API payload
         const formatDate = (dateStr) => {
-            if (!dateStr || dateStr === "ERROR") return "";
+            if (!dateStr) return "";
             if (dateStr.includes("-")) {
-                const [y, m, d] = dateStr.split("-");
-                return `${d}-${m}-${y}`;
+                const parts = dateStr.split("-");
+                if (parts[0].length === 4 && parts[2].length === 2) {
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
             }
             return dateStr;
         };
 
         const targetUserId = form.dataset.userId || userId;
+        
+        // Ensure passwords match if entered
+        if (form.password.value !== form.confirmPassword.value) {
+            showToast("รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน", "ข้อผิดพลาด", "error");
+            return;
+        }
+
         const updateData = {
             houseNumber: form.houseNumber.value,
             ownerName: form.ownerName.value,
-            registerDate: formatDate(form.registerDate.value),
-            memberStartDate: formatDate(form.memberStartDate.value),
-            memberExpireDate: formatDate(form.memberExpireDate.value),
             role: "member"
         };
+
+        if (form.registerDate.value) updateData.registerDate = formatDate(form.registerDate.value);
+        if (form.memberStartDate.value) updateData.memberStartDate = formatDate(form.memberStartDate.value);
+        if (form.memberExpireDate.value) updateData.memberExpireDate = formatDate(form.memberExpireDate.value);
 
         console.log("PUT payload to API:", updateData);
 
