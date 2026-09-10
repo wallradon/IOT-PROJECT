@@ -183,7 +183,7 @@ function renderVehicleList(data) {
 
     vehicleDataContainer.replaceChildren(); // Clear previous content
     let foundCount = 0; // Count found vehicles
-    
+
     // Loop to check each user data
     data.forEach(d => {
         const plate = d.plate || "-"; // Vehicle plate
@@ -322,7 +322,7 @@ function renderUserDetail(userId) {
     // Vehicle section
     const vehicleUser = document.createElement('section');
     vehicleUser.className = 'vehicleUser';
-    
+
     const h1 = document.createElement('h1');
     h1.className = 'vehicleList';
     h1.textContent = 'Registered Vehicles';
@@ -342,22 +342,22 @@ function renderUserDetail(userId) {
         userVehicles.forEach(vehicle => {
             const row = document.createElement('div');
             row.className = 'headVlist';
-            
+
             const pPlate = document.createElement('p');
             pPlate.className = 'Vlist';
             pPlate.textContent = vehicle.plate;
-            
+
             const pType = document.createElement('p');
             pType.className = 'Vlist';
             pType.textContent = vehicle.type;
-            
+
             const aMore = document.createElement('a');
             aMore.href = '#';
             aMore.dataset.target = 'vehicleDetail';
             aMore.dataset.carPlate = vehicle.plate;
             aMore.dataset.id = user.id;
             aMore.textContent = 'More info';
-            
+
             row.append(pPlate, pType, aMore);
             vehicleUser.append(row);
         });
@@ -465,7 +465,7 @@ function renderEachVehicle(userId, vehiclePlate) {
             spanIn.className = 'time-record';
             spanIn.textContent = timeRecord.time_in ?? '-';
             timeInList.append(spanIn);
-            
+
             const spanOut = document.createElement('span');
             spanOut.className = 'time-record';
             spanOut.textContent = timeRecord.time_out ?? '-';
@@ -476,7 +476,7 @@ function renderEachVehicle(userId, vehiclePlate) {
         spanIn.className = 'time-record';
         spanIn.textContent = '-';
         timeInList.append(spanIn);
-        
+
         const spanOut = document.createElement('span');
         spanOut.className = 'time-record';
         spanOut.textContent = '-';
@@ -656,18 +656,18 @@ function renderEditUserPage(userId) {
         userVehicles.forEach((vehicle) => {
             const row = document.createElement('div');
             row.className = 'edit-vehicle-row';
-            
+
             const pPlate = document.createElement('div');
             pPlate.className = 'Vlist';
             pPlate.textContent = vehicle.plate;
-            
+
             const pType = document.createElement('div');
             pType.className = 'Vlist';
             pType.textContent = vehicle.type;
-            
+
             const actionsDiv = document.createElement('div');
             actionsDiv.className = 'vehicle-actions';
-            
+
             const btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'delete-vehicle-btn';
@@ -675,7 +675,7 @@ function renderEditUserPage(userId) {
             btn.dataset.plate = vehicle.plate;
             btn.textContent = 'ลบ';
             actionsDiv.append(btn);
-            
+
             row.append(pPlate, pType, actionsDiv);
             vehiclesContainer.append(row);
         });
@@ -716,8 +716,8 @@ function renderEditUserPage(userId) {
             return dateStr;
         };
 
-        const targetUserId = form.dataset.userId || userId;
-        
+        const ID_USER = form.dataset.userId || userId;
+
         // Ensure passwords match if entered
         if (form.password.value !== form.confirmPassword.value) {
             showToast("รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน", "ข้อผิดพลาด", "error");
@@ -727,7 +727,8 @@ function renderEditUserPage(userId) {
         const updateData = {
             houseNumber: form.houseNumber.value,
             ownerName: form.ownerName.value,
-            role: "member"
+            role: "member",
+            Telegram_ID: user.Telegram_ID || ""
         };
 
         if (form.registerDate.value) updateData.registerDate = formatDate(form.registerDate.value);
@@ -736,7 +737,7 @@ function renderEditUserPage(userId) {
 
         console.log("PUT payload to API:", updateData);
 
-        const result = await updateUser(targetUserId, updateData);
+        const result = await updateUser(ID_USER, updateData);
 
         let accountError = false;
         if (form.username.value || form.password.value) {
@@ -745,7 +746,7 @@ function renderEditUserPage(userId) {
             if (form.password.value) accountData.password = form.password.value;
 
             if (Object.keys(accountData).length > 0) {
-                const accountResult = await updateAccount(targetUserId, accountData);
+                const accountResult = await updateAccount(ID_USER, accountData);
                 if (!accountResult || !accountResult.success) {
                     accountError = true;
                 }
@@ -772,7 +773,8 @@ function renderEditUserPage(userId) {
             }
 
             await initData(); // Re-fetch updated data
-            showPage("userDetail", { id: Number(targetUserId) }); // Back to user detail
+            console.log("usersData", usersData);
+            showPage("userDetail", { id: Number(ID_USER) }); // Back to user detail
         } else {
             showToast(result?.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล", "ข้อผิดพลาด", "error");
         }
@@ -883,7 +885,7 @@ function showToast(message, title = "Success", type = "success", duration = 3500
 
     const iconWrapper = document.createElement('div');
     iconWrapper.className = 'icon-wrapper';
-    
+
     // Parse SVG string to DOM element to avoid using innerHTML
     const parser = new DOMParser();
     const svgDoc = parser.parseFromString(iconSvg, 'image/svg+xml');
