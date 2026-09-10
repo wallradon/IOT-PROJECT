@@ -1,5 +1,17 @@
 "use strict"
 
+// ===================== Security Utilities =====================
+function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+
 // ===================== Global App State =====================
 const gUsers = "users/getUsers"; // User data path
 const gVehicles = "vehicles/getVehicles"; // Vehicle data path
@@ -113,7 +125,11 @@ function renderUserPage(target, params) {
     // 3. Check loading status: If not done, show loading text
     if (isLoading) {
         if (loadingContainer) {
-            loadingContainer.innerHTML = `<p class="loading-text">Loading data...</p>`;
+            loadingContainer.replaceChildren();
+            const p = document.createElement('p');
+            p.className = 'loading-text';
+            p.textContent = 'Loading data...';
+            loadingContainer.append(p);
         }
         return;
     }
@@ -121,7 +137,12 @@ function renderUserPage(target, params) {
     // 4. Check error: If HTTP status is not 200-299, show error text
     if (fetchStatus < 200 || fetchStatus > 299) {
         if (loadingContainer) {
-            loadingContainer.innerHTML = `<p class="loading-text" style="color: red;">Error loading data. Please try again (HTTP Code: ${fetchStatus})</p>`;
+            loadingContainer.replaceChildren();
+            const p = document.createElement('p');
+            p.className = 'loading-text';
+            p.style.color = 'red';
+            p.textContent = `Error loading data. Please try again (HTTP Code: ${fetchStatus})`;
+            loadingContainer.append(p);
         }
         return;
     }
@@ -139,7 +160,7 @@ function renderUserPage(target, params) {
         renderRoutes[target](params);
     } else {
         console.log(`No render function found for target: ${target}`);
-    };
+    }
 }
 
 // ===================== Render VEHICLE DATA Page =====================
@@ -151,33 +172,40 @@ function renderVehicleList(data) {
     const vehicleDataContainer = document.querySelector('#VehicleData');
     if (!vehicleDataContainer) return; // Stop if container not found
 
-    let htmlContent = "";
+    vehicleDataContainer.replaceChildren(); // Clear previous content
     let foundCount = 0; // Count found vehicles
+    
     // Loop to check each user data
     data.forEach(d => {
         const plate = d.plate || "-"; // Vehicle plate
         const type = d.type || "-";   // Vehicle type (e.g. car, motorcycle)
 
         foundCount++;
-        // ใช้ Ternary Operator และ Optional Chaining เพื่อกำหนดข้อความในบรรทัดเดียว
         const recordText = d.time_in ? `In: ${d.time_in ?? '-'} | Out: ${d.time_out ?? '-'}` : "No entry/exit records";
 
-        htmlContent += `
-        <div class="User VehicleRow">
-            <h2>${type}</h2>
-            <h2>${plate}</h2>
-            <h2>${recordText}</h2>
-        </div>
-        `;
+        const row = document.createElement('div');
+        row.className = 'User VehicleRow';
+
+        const h2Type = document.createElement('h2');
+        h2Type.textContent = type;
+
+        const h2Plate = document.createElement('h2');
+        h2Plate.textContent = plate;
+
+        const h2Record = document.createElement('h2');
+        h2Record.textContent = recordText;
+
+        row.append(h2Type, h2Plate, h2Record);
+        vehicleDataContainer.append(row);
     });
 
     // If no vehicles found, show alert
     if (foundCount === 0) {
-        htmlContent = `<p class="loading-text">No vehicle data found</p>`;
+        const p = document.createElement('p');
+        p.className = 'loading-text';
+        p.textContent = 'No vehicle data found';
+        vehicleDataContainer.append(p);
     }
-
-    // Write HTML to page
-    vehicleDataContainer.innerHTML = htmlContent;
 }
 
 
@@ -190,23 +218,37 @@ function renderUserList(users) {
     const userDataContainer = document.querySelector('#UserData');
     if (!userDataContainer) return;
 
-    let htmlContent = "";
+    userDataContainer.replaceChildren(); // Clear previous content
+
     // Loop to create HTML for users
     users.filter(user => user.role === "member").forEach((user, index) => {
-        htmlContent += `
-        <div class="User" data-id="${user.id}" data-target="userDetail" style="cursor: pointer;">
-            <h2>${index + 1}</h2>
-            <h2>${user.houseNumber}</h2>
-            <!-- Action buttons -->
-            <div class="user-actions">
-                <button type="button" data-id="${user.id}" data-house-number="${user.houseNumber}" class="delete-user-btn">ลบข้อมูล (Delete)</button>
-            </div>
-        </div>
-        `;
+        const userDiv = document.createElement('div');
+        userDiv.className = 'User';
+        userDiv.dataset.id = user.id;
+        userDiv.dataset.target = 'userDetail';
+        userDiv.style.cursor = 'pointer';
+
+        const h2Index = document.createElement('h2');
+        h2Index.textContent = index + 1;
+
+        const h2House = document.createElement('h2');
+        h2House.textContent = user.houseNumber;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'user-actions';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.dataset.id = user.id;
+        deleteBtn.dataset.houseNumber = user.houseNumber;
+        deleteBtn.className = 'delete-user-btn';
+        deleteBtn.textContent = 'ลบข้อมูล (Delete)';
+
+        actionsDiv.append(deleteBtn);
+        userDiv.append(h2Index, h2House, actionsDiv);
+        userDataContainer.append(userDiv);
     });
     console.log(users);
-    // Add HTML to page at once to reduce reflow/repaint
-    userDataContainer.innerHTML = htmlContent;
 }
 
 // ===================== Render User Detail Page =====================
@@ -219,68 +261,122 @@ function renderUserDetail(userId) {
     const user = UsersData.find(u => u.id === userId);
     console.log(user);
     // Find all vehicles of this user
-    // Make sure vehiclesData is an array
     const userVehicles = Array.isArray(vehiclesData)
         ? vehiclesData.filter(v => v.user_id === userId)
         : [];
 
     const userDetailContainer = document.querySelector('#page-userDetail');
+    userDetailContainer.replaceChildren();
 
     // Prevent app from freezing if user is not found
     if (!user) {
-        userDetailContainer.innerHTML = `<p class="loading-text">User not found</p>`;
+        const p = document.createElement('p');
+        p.className = 'loading-text';
+        p.textContent = 'User not found';
+        userDetailContainer.append(p);
         return;
     }
 
-    // Loop to get all vehicles and create HTML
-    let vehiclesHTML = '';
+    // Home detail section
+    const homeDetail = document.createElement('section');
+    homeDetail.className = 'homeDetail';
+
+    const createHomeRow = (containerClass, labelText, valueText) => {
+        const div = document.createElement('div');
+        div.className = containerClass;
+        const pLabel = document.createElement('p');
+        pLabel.className = 'homeList';
+        pLabel.textContent = labelText;
+        const pValue = document.createElement('p');
+        pValue.className = 'homeList';
+        pValue.textContent = valueText;
+        div.append(pLabel, pValue);
+        return div;
+    };
+
+    homeDetail.append(
+        createHomeRow('homeNumber', 'House Number', user.houseNumber),
+        createHomeRow('nameOwner', 'Owner Name', user.ownerName)
+    );
+
+    const timeData = document.createElement('div');
+    timeData.className = 'TimeData';
+    const pRegDate = document.createElement('p');
+    pRegDate.className = 'homeList';
+    pRegDate.textContent = `Register Date: ${user.registerDate ?? '-'}`;
+    const pMemDate = document.createElement('p');
+    pMemDate.className = 'homeList';
+    pMemDate.textContent = `Member Start Date: ${user.memberStartDate ?? '-'} | Expire Date: ${user.memberExpireDate ?? '-'}`;
+    timeData.append(pRegDate, pMemDate);
+    homeDetail.append(timeData);
+
+    // Vehicle section
+    const vehicleUser = document.createElement('section');
+    vehicleUser.className = 'vehicleUser';
+    
+    const h1 = document.createElement('h1');
+    h1.className = 'vehicleList';
+    h1.textContent = 'Registered Vehicles';
+    vehicleUser.append(h1);
+
+    const headRow = document.createElement('div');
+    headRow.className = 'headVlist';
+    ['Plate', 'Type', 'Details'].forEach(text => {
+        const h3 = document.createElement('h3');
+        h3.className = 'Vlist';
+        h3.textContent = text;
+        headRow.append(h3);
+    });
+    vehicleUser.append(headRow);
+
     if (userVehicles.length > 0) {
-        userVehicles.forEach((vehicle, index) => {
-            vehiclesHTML += `
-            <div class="headVlist">
-                <p class="Vlist">${vehicle.plate}</p>
-                <p class="Vlist">${vehicle.type}</p>
-                <!-- Link to see specific vehicle logs -->
-                <a href="#" data-target="vehicleDetail" data-car-plate="${vehicle.plate}" data-id="${user.id}">More info</a>
-            </div>`;
+        userVehicles.forEach(vehicle => {
+            const row = document.createElement('div');
+            row.className = 'headVlist';
+            
+            const pPlate = document.createElement('p');
+            pPlate.className = 'Vlist';
+            pPlate.textContent = vehicle.plate;
+            
+            const pType = document.createElement('p');
+            pType.className = 'Vlist';
+            pType.textContent = vehicle.type;
+            
+            const aMore = document.createElement('a');
+            aMore.href = '#';
+            aMore.dataset.target = 'vehicleDetail';
+            aMore.dataset.carPlate = vehicle.plate;
+            aMore.dataset.id = user.id;
+            aMore.textContent = 'More info';
+            
+            row.append(pPlate, pType, aMore);
+            vehicleUser.append(row);
         });
     } else {
-        // Empty row if no vehicles
-        vehiclesHTML = `<div class="headVlist">
-                            <p class="Vlist">-</p>
-                            <p class="Vlist">-</p>
-                            <p></p>
-                        </div>`;
+        const row = document.createElement('div');
+        row.className = 'headVlist';
+        const empty1 = document.createElement('p');
+        empty1.className = 'Vlist';
+        empty1.textContent = '-';
+        const empty2 = document.createElement('p');
+        empty2.className = 'Vlist';
+        empty2.textContent = '-';
+        const empty3 = document.createElement('p');
+        row.append(empty1, empty2, empty3);
+        vehicleUser.append(row);
     }
 
-    // Update HTML for user details and vehicles
-    userDetailContainer.innerHTML = `
-            <section class="homeDetail">
-                <div class="homeNumber">
-                    <p class="homeList">House Number</p>
-                    <p class="homeList">${user.houseNumber}</p>
-                </div>
-                <div class="nameOwner">
-                    <p class="homeList">Owner Name</p>
-                    <p class="homeList">${user.ownerName}</p>
-                </div>
-                <div class="TimeData">
-                    <p class="homeList">Register Date: ${user.registerDate ?? '-'}</p>
-                    <p class="homeList">Member Start Date: ${user.memberStartDate ?? '-'} | Expire Date: ${user.memberExpireDate ?? '-'}</p>
-                </div>
-            </section>
-            <section class="vehicleUser">
-                <h1 class="vehicleList">Registered Vehicles</h1>
-                <div class="headVlist">
-                    <h3 class="Vlist">Plate</h3>
-                    <h3 class="Vlist">Type</h3>
-                    <h3 class="Vlist">Details</h3>
-                </div>
-                ${vehiclesHTML}
-                </section>
-                <div class="edit-user-btn-container">
-                <a href="#" data-target="editUser" data-id="${user.id}" class="edit-user-btn">แก้ไขข้อมูลลูกบ้าน (Edit User)</a>
-                </div>`;
+    const editBtnContainer = document.createElement('div');
+    editBtnContainer.className = 'edit-user-btn-container';
+    const editBtn = document.createElement('a');
+    editBtn.href = '#';
+    editBtn.dataset.target = 'editUser';
+    editBtn.dataset.id = user.id;
+    editBtn.className = 'edit-user-btn';
+    editBtn.textContent = 'แก้ไขข้อมูลลูกบ้าน (Edit User)';
+    editBtnContainer.append(editBtn);
+
+    userDetailContainer.append(homeDetail, vehicleUser, editBtnContainer);
 }
 
 
@@ -299,63 +395,88 @@ function renderEachVehicle(userId, vehiclePlate) {
     const timeStamp = VeLog.filter(t => t.plate === vehiclePlate);
 
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
-    if (!vData) {
-        vehicleDetailContainer.innerHTML = `<p class="loading-text">Owner not found</p>`;
+    vehicleDetailContainer.replaceChildren();
+
+    if (!vData || vData.length === 0) {
+        const p = document.createElement('p');
+        p.className = 'loading-text';
+        p.textContent = 'Owner not found';
+        vehicleDetailContainer.append(p);
         return;
     }
 
-    // Check if vehicle exists
     if (!vehicle) {
-        vehicleDetailContainer.innerHTML = `<p class="loading-text">Vehicle not found for this owner</p>`;
+        const p = document.createElement('p');
+        p.className = 'loading-text';
+        p.textContent = 'Vehicle not found for this owner';
+        vehicleDetailContainer.append(p);
         return;
     }
 
-    // Organize in and out times for grid view
-    let timeInHTML = '';
-    let timeOutHTML = '';
+    const card = document.createElement('div');
+    card.className = 'vehicle-card';
 
-    // Check if there are any logs
+    const vTitle = document.createElement('div');
+    vTitle.className = 'v-title';
+    vTitle.textContent = 'Vehicle Details';
+
+    const vDate = document.createElement('div');
+    vDate.className = 'v-date';
+    vDate.textContent = `Register Date: ${vehicle.registerDate ?? '-'}`;
+
+    const vGrid = document.createElement('div');
+    vGrid.className = 'v-grid';
+
+    const createItem = (text, isBold = false) => {
+        const div = document.createElement('div');
+        div.className = 'v-item';
+        div.textContent = text;
+        if (isBold) div.style.fontWeight = 'bold';
+        return div;
+    };
+
+    vGrid.append(
+        createItem(`Plate: ${vehicle.plate ?? '-'}`),
+        createItem(`Type: ${vehicle.type ?? '-'}`),
+        createItem('Time In', true),
+        createItem('Time Out', true)
+    );
+
+    const timeInList = document.createElement('div');
+    timeInList.className = 'v-item v-time';
+    timeInList.id = 'time-in-list';
+
+    const timeOutList = document.createElement('div');
+    timeOutList.className = 'v-item v-time';
+    timeOutList.id = 'time-out-list';
+
     if (timeStamp.length > 0) {
         timeStamp.forEach((timeRecord) => {
-            timeInHTML += `
-            <span class="time-record">${timeRecord.time_in ?? '-'}</span>
-            `;
-            timeOutHTML += `
-            <span class="time-record">${timeRecord.time_out ?? '-'}</span>
-            `;
+            const spanIn = document.createElement('span');
+            spanIn.className = 'time-record';
+            spanIn.textContent = timeRecord.time_in ?? '-';
+            timeInList.append(spanIn);
+            
+            const spanOut = document.createElement('span');
+            spanOut.className = 'time-record';
+            spanOut.textContent = timeRecord.time_out ?? '-';
+            timeOutList.append(spanOut);
         });
     } else {
-        // If no records found
-        timeInHTML += `<span class="time-record">-</span>`;
-        timeOutHTML += `<span class="time-record">-</span>`;
+        const spanIn = document.createElement('span');
+        spanIn.className = 'time-record';
+        spanIn.textContent = '-';
+        timeInList.append(spanIn);
+        
+        const spanOut = document.createElement('span');
+        spanOut.className = 'time-record';
+        spanOut.textContent = '-';
+        timeOutList.append(spanOut);
     }
 
-    // Create HTML for vehicle card
-    let htmlContent = `<div class="vehicle-card">
-    <!-- Card header and register date -->
-    <div class="v-title">Vehicle Details</div>
-    <div class="v-date">Register Date: ${vehicle.registerDate ?? '-'} </div>
-
-    <!-- Details and logs table -->
-    <div class="v-grid">
-        <div class="v-item">Plate: ${vehicle.plate ?? '-'}</div>
-        <div class="v-item">Type: ${vehicle.type ?? '-'}</div>
-
-        <div class="v-item" style="font-weight: bold;">Time In</div>
-        <div class="v-item" style="font-weight: bold;">Time Out</div>
-
-        <!-- Time in list (Left) -->
-        <div class="v-item v-time" id="time-in-list">
-            ${timeInHTML}
-        </div>
-
-        <!-- Time out list (Right) -->
-        <div class="v-item v-time" id="time-out-list">
-            ${timeOutHTML}
-        </div>
-    </div>
-    </div>`;
-    vehicleDetailContainer.innerHTML = htmlContent;
+    vGrid.append(timeInList, timeOutList);
+    card.append(vTitle, vDate, vGrid);
+    vehicleDetailContainer.append(card);
 }
 
 // ===================== Global Click Event Delegation =====================
@@ -401,7 +522,7 @@ document.querySelector('.main-content').addEventListener('click', async (e) => {
 
         showConfirmPopup(
             'ยืนยันการนำรถออก',
-            `คุณต้องการนำรถทะเบียน ${plate} ออกจากรายการหรือไม่? (ข้อมูลจะถูกลบจริงเมื่อกดยืนยันบันทึกข้อมูล)`,
+            `คุณต้องการนำรถทะเบียน ${escapeHTML(plate)} ออกจากรายการหรือไม่? (ข้อมูลจะถูกลบจริงเมื่อกดยืนยันบันทึกข้อมูล)`,
             () => {
                 const form = document.querySelector("#editUserForm");
                 if (form) {
@@ -434,6 +555,8 @@ function renderEditUserPage(userId) {
     const pageContainer = document.querySelector('#page-editUser');
     if (!pageContainer) return;
 
+    pageContainer.replaceChildren();
+
     const user = UsersData.find(u => u.id === userId) || {};
 
     const houseNumber = user.houseNumber || "ERROR";
@@ -457,77 +580,114 @@ function renderEditUserPage(userId) {
         ? vehiclesData.filter(v => v.user_id === userId)
         : [];
 
-    let vehiclesHTML = `
-        <div class="edit-vehicles-container">
-            <h3 class="edit-vehicles-title">ข้อมูลรถ (Vehicles)</h3>
-            <div class="edit-vehicles-header">
-                <div class="Vlist">Plate</div>
-                <div class="Vlist">Type</div>
-                <div class="Vlist actions-col">Actions</div>
-            </div>
-    `;
+    const container = document.createElement('div');
+    container.className = 'edit-user-container';
+
+    const title = document.createElement('h2');
+    title.className = 'edit-user-title';
+    title.textContent = 'แก้ไขข้อมูลลูกบ้าน (Edit User)';
+
+    const form = document.createElement('form');
+    form.id = 'editUserForm';
+    form.className = 'edit-user-form';
+    form.dataset.userId = user.id || userId || '';
+
+    const createFormGroup = (id, labelText, type, value, placeholder) => {
+        const group = document.createElement('div');
+        group.className = 'form-group';
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.className = 'form-label';
+        label.textContent = labelText;
+        const input = document.createElement('input');
+        input.type = type;
+        input.id = id;
+        input.name = id;
+        input.className = 'form-input';
+        if (value !== undefined) input.value = value;
+        if (placeholder) input.placeholder = placeholder;
+        group.append(label, input);
+        return group;
+    };
+
+    form.append(
+        createFormGroup('houseNumber', 'House Number', 'text', houseNumber),
+        createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
+        createFormGroup('username', 'Username', 'text', user.username || '', 'ใส่ Username ใหม่...'),
+        createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...'),
+        createFormGroup('registerDate', 'Register Date', 'date', registerDate),
+        createFormGroup('memberStartDate', 'Member Start Date', 'date', memberStartDate),
+        createFormGroup('memberExpireDate', 'Member Expire Date', 'date', memberExpireDate)
+    );
+
+    const vehiclesContainer = document.createElement('div');
+    vehiclesContainer.className = 'edit-vehicles-container';
+
+    const vTitle = document.createElement('h3');
+    vTitle.className = 'edit-vehicles-title';
+    vTitle.textContent = 'ข้อมูลรถ (Vehicles)';
+    vehiclesContainer.append(vTitle);
+
+    const vHeader = document.createElement('div');
+    vHeader.className = 'edit-vehicles-header';
+    ['Plate', 'Type', 'Actions'].forEach((text, i) => {
+        const div = document.createElement('div');
+        div.className = i === 2 ? 'Vlist actions-col' : 'Vlist';
+        div.textContent = text;
+        vHeader.append(div);
+    });
+    vehiclesContainer.append(vHeader);
 
     if (userVehicles.length > 0) {
         userVehicles.forEach((vehicle) => {
-            vehiclesHTML += `
-            <div class="edit-vehicle-row">
-                <div class="Vlist">${vehicle.plate}</div>
-                <div class="Vlist">${vehicle.type}</div>
-                <div class="vehicle-actions">
-                    <button type="button" class="delete-vehicle-btn" data-id="${vehicle.id}" data-plate="${vehicle.plate}">ลบ</button>
-                </div>
-            </div>`;
+            const row = document.createElement('div');
+            row.className = 'edit-vehicle-row';
+            
+            const pPlate = document.createElement('div');
+            pPlate.className = 'Vlist';
+            pPlate.textContent = vehicle.plate;
+            
+            const pType = document.createElement('div');
+            pType.className = 'Vlist';
+            pType.textContent = vehicle.type;
+            
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'vehicle-actions';
+            
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'delete-vehicle-btn';
+            btn.dataset.id = vehicle.id;
+            btn.dataset.plate = vehicle.plate;
+            btn.textContent = 'ลบ';
+            actionsDiv.append(btn);
+            
+            row.append(pPlate, pType, actionsDiv);
+            vehiclesContainer.append(row);
         });
     } else {
-        vehiclesHTML += `<div class="edit-vehicle-empty">- ไม่มีข้อมูลรถ (No vehicles found) -</div>`;
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'edit-vehicle-empty';
+        emptyDiv.textContent = '- ไม่มีข้อมูลรถ (No vehicles found) -';
+        vehiclesContainer.append(emptyDiv);
     }
 
-    vehiclesHTML += `</div>`;
+    form.append(vehiclesContainer);
 
-    pageContainer.innerHTML = `
-        <div class="edit-user-container">
-            <h2 class="edit-user-title">แก้ไขข้อมูลลูกบ้าน (Edit User)</h2>
-            <form id="editUserForm" class="edit-user-form" data-user-id="${user.id || userId || ''}">
-                <div class="form-group">
-                    <label for="houseNumber" class="form-label">House Number</label>
-                    <input type="text" id="houseNumber" name="houseNumber" value="${houseNumber}" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="ownerName" class="form-label">Owner Name</label>
-                    <input type="text" id="ownerName" name="ownerName" value="${ownerName}" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" name="username" value="${user.username || ''}" class="form-input" placeholder="ใส่ Username ใหม่...">
-                </div>
-                <div class="form-group">
-                    <label for="password" class="form-label">New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)</label>
-                    <input type="password" id="password" name="password" placeholder="ใส่รหัสผ่านใหม่..." class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="registerDate" class="form-label">Register Date</label>
-                    <input type="date" id="registerDate" name="registerDate" value="${registerDate}" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="memberStartDate" class="form-label">Member Start Date</label>
-                    <input type="date" id="memberStartDate" name="memberStartDate" value="${memberStartDate}" class="form-input">
-                </div>
-                <div class="form-group">
-                    <label for="memberExpireDate" class="form-label">Member Expire Date</label>
-                    <input type="date" id="memberExpireDate" name="memberExpireDate" value="${memberExpireDate}" class="form-input">
-                </div>
-                
-                ${vehiclesHTML}
+    const submitBtn = document.createElement('button');
+    submitBtn.type = 'submit';
+    submitBtn.className = 'submit-btn';
+    submitBtn.style.marginTop = '20px';
+    submitBtn.textContent = 'บันทึกข้อมูล (Save)';
+    form.append(submitBtn);
 
-                <button type="submit" class="submit-btn" style="margin-top: 20px;">บันทึกข้อมูล (Save)</button>
-            </form>
-        </div>
-    `;
+    container.append(title, form);
+    pageContainer.append(container);
 
-    const form = document.querySelector("#editUserForm");
-    if (!form) return;
+    const createdForm = document.querySelector("#editUserForm");
+    if (!createdForm) return;
 
-    form.addEventListener("submit", async (e) => {
+    createdForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         // Convert YYYY-MM-DD to DD-MM-YYYY for API payload
@@ -693,17 +853,31 @@ function showToast(message, title = "Success", type = "success", duration = 3500
             <circle r="10" cy="12" cx="12"></circle>
            </svg>`;
 
-    toast.innerHTML = `
-        <!-- From Uiverse.io by kyle1dev -->
-        <button class="close-btn">&times;</button>
-        <div class="icon-wrapper">
-            ${iconSvg}
-        </div>
-        <div class="text-wrapper">
-            <div class="title">${title}</div>
-            <div class="message">${message}</div>
-        </div>
-    `;
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.textContent = '×'; // Changed to textContent and used Unicode character instead of HTML entity
+
+    const iconWrapper = document.createElement('div');
+    iconWrapper.className = 'icon-wrapper';
+    
+    // Parse SVG string to DOM element to avoid using innerHTML
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(iconSvg, 'image/svg+xml');
+    iconWrapper.append(svgDoc.documentElement);
+
+    const textWrapper = document.createElement('div');
+    textWrapper.className = 'text-wrapper';
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'title';
+    titleEl.textContent = title;
+
+    const messageEl = document.createElement('div');
+    messageEl.className = 'message';
+    messageEl.textContent = message;
+
+    textWrapper.append(titleEl, messageEl);
+    toast.append(closeBtn, iconWrapper, textWrapper);
 
     container.appendChild(toast);
 
@@ -719,7 +893,7 @@ function showToast(message, title = "Success", type = "success", duration = 3500
         });
     };
 
-    toast.querySelector('.close-btn').addEventListener('click', removeToast);
+    closeBtn.addEventListener('click', removeToast);
 
     if (duration > 0) {
         setTimeout(removeToast, duration);
