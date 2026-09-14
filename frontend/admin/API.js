@@ -178,6 +178,32 @@ async function deleteVehicle(vehicleId) {
     }
 }
 
+async function createVehicle(vehicleData) {
+    try {
+        const fullUrl = new URL(`vehicles/createVehicle`, API_BASE_URL);
+
+        const res = await fetch(fullUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(vehicleData)
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error creating vehicle:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}
+
+
 
 async function updateAccount(userId, accountData) {
     try {

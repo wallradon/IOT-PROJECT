@@ -623,6 +623,30 @@ function renderEditUserPage(userId) {
         return group;
     };
 
+    const createSelectGroup = (id, labelText, options, defaultValue = '') => {
+        const group = document.createElement('div');
+        group.className = 'form-group';
+        const label = document.createElement('label');
+        label.htmlFor = id;
+        label.className = 'form-label';
+        label.textContent = labelText;
+        const select = document.createElement('select');
+        select.id = id;
+        select.name = id;
+        select.className = 'form-input';
+
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt.value;
+            option.textContent = opt.label;
+            if (opt.value === defaultValue) option.selected = true;
+            select.appendChild(option);
+        });
+
+        group.append(label, select);
+        return group;
+    };
+
     form.append(
         createFormGroup('houseNumber', 'House Number', 'text', houseNumber),
         createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
@@ -686,6 +710,48 @@ function renderEditUserPage(userId) {
         vehiclesContainer.append(emptyDiv);
     }
 
+    // Add Vehicle Section inside Edit Form
+    const addVehicleSection = document.createElement('div');
+    addVehicleSection.className = 'add-vehicle-section';
+
+    const addVTitle = document.createElement('h4');
+    addVTitle.className = 'add-vehicle-title';
+    addVTitle.textContent = 'เพิ่มรถคันใหม่ (Add New Vehicle)';
+
+    const addVGrid = document.createElement('div');
+    addVGrid.className = 'add-vehicle-grid';
+
+    const PROVINCES_LIST = [
+        "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
+        "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม",
+        "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์",
+        "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์",
+        "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง",
+        "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรปราการ",
+        "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย",
+        "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
+    ];
+
+    const thaiProvinces = [
+        { value: '', label: '-- เลือกจังหวัด --' },
+        ...PROVINCES_LIST.map(p => ({ value: p, label: p }))
+    ];
+
+    const vehicleTypes = [
+        { value: '', label: '-- เลือกประเภทรถ --' },
+        { value: 'Car', label: 'รถยนต์ (Car)' },
+        { value: 'Motorcycle', label: 'รถมอเตอร์ไซค์ (Motorcycle)' }
+    ];
+
+    addVGrid.append(
+        createFormGroup('newPlate', 'ทะเบียนรถ (Plate)', 'text', '', 'เช่น กข1277'),
+        createSelectGroup('newProvince', 'จังหวัด (Province)', thaiProvinces),
+        createSelectGroup('newType', 'ประเภท (Type)', vehicleTypes)
+    );
+
+    addVehicleSection.append(addVTitle, addVGrid);
+    vehiclesContainer.append(addVehicleSection);
+
     form.append(vehiclesContainer);
 
     const submitBtn = document.createElement('button');
@@ -716,7 +782,7 @@ function renderEditUserPage(userId) {
             return dateStr;
         };
 
-        const ID_USER = form.dataset.userId || userId;
+        const ID_USER = Number(form.dataset.userId || userId);
 
         // Ensure passwords match if entered
         if (form.password.value !== form.confirmPassword.value) {
@@ -756,6 +822,37 @@ function renderEditUserPage(userId) {
             }
         }
 
+        let vehicleAddError = false;
+        const newPlate = form.newPlate ? form.newPlate.value.trim() : '';
+        const newProvince = form.newProvince ? form.newProvince.value.trim() : '';
+        const newType = form.newType ? form.newType.value.trim() : '';
+
+        if (newPlate || newProvince || newType) {
+            if (!newPlate || !newProvince || !newType) {
+                showToast("กรุณากรอกข้อมูลรถใหม่ให้ครบถ้วน (ทะเบียน, จังหวัด, ประเภท)", "ข้อผิดพลาด", "error");
+                return;
+            }
+
+            const today = new Date();
+            const day = String(today.getDate()).padStart(2, '0');
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = today.getFullYear();
+            const regDateStr = `${day}/${month}/${year}`;
+
+            const vehiclePayload = {
+                user_id: ID_USER,
+                plate: newPlate,
+                province: newProvince,
+                type: newType,
+                registerDate: regDateStr
+            };
+
+            const addRes = await createVehicle(vehiclePayload);
+            if (!addRes || !addRes.success) {
+                vehicleAddError = true;
+            }
+        }
+
         if (result && result.success) {
             const pendingDeletes = form.dataset.pendingDeletes ? JSON.parse(form.dataset.pendingDeletes) : [];
             let deleteErrors = 0;
@@ -765,7 +862,9 @@ function renderEditUserPage(userId) {
                 if (!delRes || !delRes.success) deleteErrors++;
             }
 
-            if (deleteErrors > 0 && accountError) {
+            if (vehicleAddError) {
+                showToast(`อัปเดตข้อมูลสำเร็จ แต่เกิดข้อผิดพลาดในการเพิ่มรถใหม่`, "เตือน", "error");
+            } else if (deleteErrors > 0 && accountError) {
                 showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถและแก้ไขบัญชี`, "เตือน", "error");
             } else if (deleteErrors > 0) {
                 showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถบางคัน`, "เตือน", "error");

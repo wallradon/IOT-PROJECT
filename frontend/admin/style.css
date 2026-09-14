@@ -755,3 +755,24 @@ header {
     text-align: center;
     border-bottom: 1px solid #ddd;
 }
+
+.add-vehicle-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #fdfdfd;
+    border: 1px dashed #ccc;
+    border-radius: 8px;
+}
+
+.add-vehicle-title {
+    font-size: 1rem;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+    font-weight: 600;
+}
+
+.add-vehicle-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
