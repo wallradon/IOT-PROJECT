@@ -883,9 +883,12 @@ function renderEditUserPage(userId) {
     });
 }
 
-async function initData() {
-    isLoading = true;
-    refreshCurrentPage(); // Show loading UI while fetching
+// ฟังก์ชันดึงข้อมูล (isSilent = true จะไม่อยู่ในสถานะ isLoading ที่แสดง Loading Spinner)
+async function initData(isSilent = false) {
+    if (!isSilent) {
+        isLoading = true;
+        refreshCurrentPage(); // แสดง Loading Spinner เฉพาะการโหลดครั้งแรก
+    }
 
     try {
         // Wait for all data to load
@@ -897,13 +900,17 @@ async function initData() {
     } catch (error) {
         console.error("Error loading initial data:", error);
     } finally {
-        // When done, stop loading and update UI
-        isLoading = false;
+        if (!isSilent) {
+            isLoading = false;
+        }
+        // อัปเดตข้อมูลบน UI โดยไม่ล้างหน้าจอเป็นสปินเนอร์
         refreshCurrentPage();
     }
 }
 
+
 // Start loading data when app starts
+initData();
 setInterval(() => {
     initData();
 }, 5000);
