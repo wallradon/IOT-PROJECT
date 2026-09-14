@@ -1,9 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&display=swap');
 
 :root {
-    --color-primary: #002e5e;      
-    --color-secondary: #29356c;    
-    --color-bg: #fffded;           
+    --color-primary: #002e5e;
+    --color-secondary: #29356c;
+    --color-bg: #fffded;
     --color-white: #ffffff;
     --color-border: #d0d7de;
     --color-shadow: rgba(0, 46, 94, 0.15);
@@ -17,7 +17,13 @@ body {
     color: #333;
 }
 
-h1, h2, h3, h4, h5, h6, p {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
     margin: 0;
 }
 
@@ -38,7 +44,7 @@ header {
     background-color: var(--color-primary);
     padding: 0 30px;
     height: 80px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .header-logo {
@@ -69,7 +75,7 @@ header {
     cursor: pointer;
     font-family: "Prompt", sans-serif;
     transition: all 0.2s ease;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .logout-btn:hover {
@@ -92,7 +98,7 @@ header {
 
 nav {
     background-color: var(--color-secondary);
-    box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
 }
 
 nav ul {
@@ -195,7 +201,8 @@ nav ul .user-select {
     grid-template-columns: 1fr 1fr 1fr;
     align-items: center;
     margin: 0.5rem 1rem 0;
-    padding: 8px 24px 8px 12px; /* เพิ่ม padding ขวาให้กว้างขึ้น */
+    padding: 8px 24px 8px 12px;
+    /* เพิ่ม padding ขวาให้กว้างขึ้น */
     background-color: var(--color-primary);
     border-radius: 6px;
 }
@@ -250,7 +257,7 @@ nav ul .user-select {
 
 /* Vehicle Detail */
 #page-vehicleDetail {
-    background-color: var(--color-bg); 
+    background-color: var(--color-bg);
     padding: 30px 20px;
 }
 
@@ -262,7 +269,9 @@ nav ul .user-select {
     gap: 10px;
 }
 
-.v-title, .v-date, .v-item {
+.v-title,
+.v-date,
+.v-item {
     background-color: var(--color-primary);
     color: var(--color-white);
     text-align: center;
@@ -343,7 +352,7 @@ nav ul .user-select {
     font-weight: 600;
     cursor: pointer;
     font-family: "Prompt", sans-serif;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.2s;
 }
 
@@ -415,7 +424,8 @@ nav ul .user-select {
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
-    align-items: center; /* คืนค่าให้อยู่กึ่งกลางบนจอคอม */
+    align-items: center;
+    /* คืนค่าให้อยู่กึ่งกลางบนจอคอม */
     z-index: 9999;
 }
 
@@ -426,9 +436,11 @@ nav ul .user-select {
     text-align: center;
     width: 90%;
     max-width: 410px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.35);
-    max-height: 90vh;        /* ป้องกันกล่องยาวเกินความสูงจอ */
-    overflow-y: auto;        /* ให้เลื่อน Scroll ดูเนื้อหาและปุ่มได้เสมอ */
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+    max-height: 90vh;
+    /* ป้องกันกล่องยาวเกินความสูงจอ */
+    overflow-y: auto;
+    /* ให้เลื่อน Scroll ดูเนื้อหาและปุ่มได้เสมอ */
     -webkit-overflow-scrolling: touch;
 }
 
@@ -507,7 +519,8 @@ nav ul .user-select {
 .qr-modal-box {
     max-width: 380px;
     margin-top: 0;
-    padding: 24px 20px 20px; /* เพิ่มระยะด้านบน 24px ให้หัวการ์ดดูโปร่ง */
+    padding: 24px 20px 20px;
+    /* เพิ่มระยะด้านบน 24px ให้หัวการ์ดดูโปร่ง */
 }
 
 .qr-title {
@@ -554,7 +567,8 @@ nav ul .user-select {
 
 /* คุมขนาดภาพบาร์โค้ดให้อยู่ในสัดส่วนมาตรฐานเดิม */
 .qr-img-wrap img {
-    max-width: 280px;  /* จำกัดความกว้างไม่ให้ล้นเต็มการ์ด */
+    max-width: 280px;
+    /* จำกัดความกว้างไม่ให้ล้นเต็มการ์ด */
     height: auto;
     display: block;
 }
@@ -573,8 +587,10 @@ nav ul .user-select {
 /* 3. ดันขึ้นด้านบนเฉพาะเมื่อเปิดในโทรศัพท์มือถือ (กว้างไม่เกิน 600px) */
 @media (max-width: 600px) {
     .login-modal-overlay {
-        align-items: flex-start; /* บนมือถือเท่านั้นที่จะดันขึ้นบน */
-        padding-top: 20px;       /* เว้นระยะห่างจากขอบบนจอโทรศัพท์กำลังสวย */
+        align-items: flex-start;
+        /* บนมือถือเท่านั้นที่จะดันขึ้นบน */
+        padding-top: 20px;
+        /* เว้นระยะห่างจากขอบบนจอโทรศัพท์กำลังสวย */
     }
 
     .qr-modal-box {
