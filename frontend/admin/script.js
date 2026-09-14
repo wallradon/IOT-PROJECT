@@ -904,7 +904,9 @@ async function initData() {
 }
 
 // Start loading data when app starts
-initData();
+setInterval(() => {
+    initData();
+}, 5000);
 
 // ===================== Logout System =====================
 const logoutBtn = document.getElementById('logoutBtn');
