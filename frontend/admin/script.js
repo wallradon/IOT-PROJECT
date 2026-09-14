@@ -910,8 +910,10 @@ async function initData(isSilent = false) {
 
 // Start loading data when app starts
 initData();
+
+// Auto-refresh data every 5 seconds (silent mode)
 setInterval(() => {
-    initData();
+    initData(true); // true = silent mode (don't show loading spinner)
 }, 5000);
 
 
