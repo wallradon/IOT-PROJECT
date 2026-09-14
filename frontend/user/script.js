@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const DELETE_VEHICLE_API = `${BASE_API_URL}/vehicles/deleteVehicle`;     // ลบข้อมูลรถยนต์ (DELETE)
     const GET_LOGS_API = `${BASE_API_URL}/logs/getLogs`;                     // ดึงประวัติการเข้า-ออกของกล้อง LPR (GET)
 
+    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 2 บรรทัด 18 -->
+    const VISITOR_BARCODE_API = `${BASE_API_URL}/visitor-barcode`;           // 👈 เพิ่มบรรทัดนี้
+
     // ==========================================================
     // ส่วนที่ 2: ตัวแปรสถานะระบบส่วนกลาง (Global App State)
     // ==========================================================
@@ -298,7 +301,6 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>`;
     }
 
-    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 6 บรรทัด 316 แก้จาก: data-car-plate="${v.plate}" -->
     function renderDirectUserDetail() {
         const container = document.getElementById('userDirectDetail');
         if (!container || !currentUser) return;
@@ -381,20 +383,40 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
+        // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 2 บรรทัด 386-423 เปลี่ยนปุ่มสร้างบาร์โค้ดให้ยิงบันทึก API ขึ้น Database -->
         const btnGenerateVisitorQR = document.getElementById('btnGenerateVisitorQR');
         if (btnGenerateVisitorQR) {
             btnGenerateVisitorQR.addEventListener('click', async () => {
                 if (!currentActiveBarcode) {
                     currentActiveBarcode = generateRandomVisitorCode(13);
-                    localStorage.setItem('savedVisitorBarcode', currentActiveBarcode);
                 }
-                console.log("Generate new barcode:", currentActiveBarcode);
 
-                // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 2 บรรทัด 393 height=24 -->
+                // ส่งบันทึกเข้าตาราง Visitor_Barcodes ของเพื่อน
+                try {
+                    const res = await fetch(`${VISITOR_BARCODE_API}/create`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({
+                            user_id: currentUser.id,
+                            barcode: currentActiveBarcode
+                        })
+                    });
+                    const result = await res.json();
+                    if (result.success && result.data) {
+                        currentActiveBarcode = result.data.barcode;
+                        localStorage.setItem('savedVisitorBarcode', currentActiveBarcode);
+                    }
+                } catch (err) {
+                    console.error("API Create Barcode Error:", err);
+                }
+
                 const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${currentActiveBarcode}&scale=3&height=12&includetext`;
 
                 if (visitorCodeDisplay) visitorCodeDisplay.textContent = currentActiveBarcode;
-                if (qrImageContainer) qrImageContainer.innerHTML = `<img src="${barcodeUrl}" alt="Visitor Barcode 13 Digits" style="max-width: 100%; height: auto; border-radius: 4px;">`;
+                if (qrImageContainer) qrImageContainer.innerHTML = `<img src="${barcodeUrl}" alt="Visitor Barcode 13 Digits">`;
                 if (qrDataText) qrDataText.textContent = `Barcode Number: ${currentActiveBarcode} (บ้านเลขที่: ${currentUser.houseNumber || '-'})`;
                 if (qrModal) qrModal.style.display = 'flex';
             });
@@ -460,44 +482,44 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', () => {
-            sessionStorage.removeItem('currentUser');
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
-            currentUser = null;
-            window.location.href = '../../index.html';
-        });
-    }
+    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 3 บรรทัด 485-494 ลบ/ปิดการใช้ -->
+    // if (logoutBtn) {
+    //     logoutBtn.addEventListener('click', () => {
+    //         sessionStorage.removeItem('currentUser');
+    //         localStorage.removeItem('token');
+    //         localStorage.removeItem('userId');
+    //         currentUser = null;
+    //         window.location.href = '../../index.html';
+    //     });
+    // }
 
+    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 4 บรรทัด 496-525 -->
     // จัดการปุ่มยกเลิก/ลบบาร์โค้ด (Cancel / Delete Barcode)
     if (btnDeleteBarcode) {
         btnDeleteBarcode.addEventListener('click', async () => {
             if (!currentActiveBarcode) return;
 
             if (confirm(`คุณต้องการยกเลิกและลบบาร์โค้ดรหัส "${currentActiveBarcode}" ออกใช่หรือไม่?`)) {
-
-                // 🚩 จุดเชื่อมต่อ API ยิงลบออกจากฐานข้อมูลหลังบ้าน
-                /*
                 try {
-                    await fetch(`${DELETE_VISITOR_API}/${currentActiveBarcode}`, {
-                        method: 'DELETE'
+                    await fetch(`${VISITOR_BARCODE_API}/${currentActiveBarcode}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
                     });
                 } catch (err) {
                     console.error("ลบบาร์โค้ดจาก DB ไม่สำเร็จ:", err);
                 }
-                */
 
                 alert(`ยกเลิกและลบบาร์โค้ดรหัส ${currentActiveBarcode} เรียบร้อยแล้ว!`);
 
-                // ล้างค่าทิ้งเพื่อให้ครั้งหน้าสุ่มรหัสใหม่
                 localStorage.removeItem('savedVisitorBarcode');
                 currentActiveBarcode = null;
 
                 qrModal.style.display = 'none';
                 qrImageContainer.innerHTML = '';
-                visitorCodeDisplay.textContent = '-';
-                qrDataText.textContent = '';
+                if (visitorCodeDisplay) visitorCodeDisplay.textContent = '-';
+                if (qrDataText) qrDataText.textContent = '';
             }
         });
     }
@@ -508,7 +530,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 7 บรรทัด 510-518 เพิ่มระบบคลิกพื้นหลังสีน้ำเงินเพื่อปิด Modal -->
+    // คลิกพื้นหลังสีน้ำเงินด้านนอกเพื่อปิด Modal ทันที
     window.addEventListener('click', (e) => {
         if (e.target === qrModal) {
             qrModal.style.display = 'none';
@@ -535,6 +557,23 @@ document.addEventListener("DOMContentLoaded", () => {
         await syncDatabase();
 
         if (currentUser) {
+            // ดึงบาร์โค้ดล่าสุดที่ยัง ACTIVE จาก Database
+            try {
+                const barcodeRes = await fetch(`${VISITOR_BARCODE_API}/latest/${currentUser.id}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const barcodeData = await barcodeRes.json();
+                if (barcodeData.success && barcodeData.exists && barcodeData.data) {
+                    currentActiveBarcode = barcodeData.data.barcode;
+                    localStorage.setItem('savedVisitorBarcode', currentActiveBarcode);
+                } else {
+                    localStorage.removeItem('savedVisitorBarcode');
+                    currentActiveBarcode = null;
+                }
+            } catch (err) {
+                console.error("Sync Barcode Error:", err);
+            }
+
             updateAuthUI();
             renderPage('user');
         } else {
@@ -588,13 +627,4 @@ function getMatchedVehicleLogs(apiResponseData, targetPlate) {
             cameraInText: log.camera_in ? `(${log.camera_in})` : '',
             cameraOutText: log.camera_out ? `(${log.camera_out})` : ''
         }));
-}
-// ฟังก์ชันสุ่มรหัสตัวเลขล้วน 13 หลัก (จำลองรูปแบบบาร์โค้ดบัตร ปชช.)
-function generateRandomVisitorCode(length = 13) {
-    const digits = '0123456789';
-    let res = digits.charAt(Math.floor(Math.random() * 9) + 1); // หลักแรกไม่เป็น 0
-    for (let i = 1; i < length; i++) {
-        res += digits.charAt(Math.floor(Math.random() * digits.length));
-    }
-    return res;
 }
