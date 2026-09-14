@@ -1,15 +1,15 @@
 "use strict"
 
-// ===================== Security Utilities =====================
-function escapeHTML(str) {
-    if (str === null || str === undefined) return '';
-    return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-}
+// // ===================== Security Utilities =====================
+// function escapeHTML(str) {
+//     if (str === null || str === undefined) return '';
+//     return String(str)
+//         .replace(/&/g, '&amp;')
+//         .replace(/</g, '&lt;')
+//         .replace(/>/g, '&gt;')
+//         .replace(/"/g, '&quot;')
+//         .replace(/'/g, '&#39;');
+// }
 
 
 // ===================== Global App State =====================
@@ -131,15 +131,8 @@ function renderUserPage(target, params) {
         }
     }
 
-    // 3. Check loading status: If not done, show loading text
+    // 3. Check loading status: If not done, return early (loader handles UI)
     if (isLoading) {
-        if (loadingContainer) {
-            loadingContainer.replaceChildren();
-            const p = document.createElement('p');
-            p.className = 'loading-text';
-            p.textContent = 'Loading data...';
-            loadingContainer.append(p);
-        }
         return;
     }
 
@@ -883,10 +876,21 @@ function renderEditUserPage(userId) {
     });
 }
 
+// ===================== Loader System =====================
+function showLoader() {
+    const loader = document.getElementById('wave-loader-overlay');
+    if (loader) loader.classList.add('show');
+}
+
+function hideLoader() {
+    const loader = document.getElementById('wave-loader-overlay');
+    if (loader) loader.classList.remove('show');
+}
+
 async function initData(isSilent = false) {
     if (!isSilent) {
         isLoading = true;
-        refreshCurrentPage(); // show loading spinner only first load
+        showLoader();
     }
 
     try {
@@ -901,8 +905,9 @@ async function initData(isSilent = false) {
     } finally {
         if (!isSilent) {
             isLoading = false;
+            hideLoader();
         }
-        // update UI without loading spinner
+        // update UI
         refreshCurrentPage();
     }
 }

@@ -24,19 +24,6 @@
         </nav>
         <!-- VEHICLE-->
         <section class="page user-details active" id="page-vehicle">
-            <div style="width: 100%; max-width: 930px; display: flex; justify-content: center; margin-top: 20px;">
-                <div
-                    style="background-color: var(--color-secondary); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-align: center; color: white; width: 450px;">
-                    <h3 style="margin-bottom: 10px; font-weight: 500;">VEHICLE DATA (Grafana)</h3>
-                    <p style="font-size: 13px; color: #ccc; margin-bottom: 15px;">ระบบ Grafana Cloud
-                        ไม่อนุญาตให้ฝังหน้าเว็บ (Embed) ลงในระบบ</p>
-                    <a href="https://redcanyon1221.grafana.net/public-dashboards/6bc4a157b7ff484a899e6fb30f62d709"
-                        target="_blank"
-                        style="display: inline-block; background-color: #f39c12; color: #222; text-decoration: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; font-size: 14px; transition: 0.2s;">
-                        เปิดดู Dashboard ในหน้าต่างใหม่ <i class="fas fa-external-link-alt"></i>
-                    </a>
-                </div>
-            </div>
             <div class="headUserData headVehicleData">
                 <h2>ประเภท</h2>
                 <h2>ทะเบียนรถ</h2>
@@ -86,6 +73,17 @@
         </div>
         <!-- Custom Toast Notification Container -->
         <div id="toast-container" class="toast-container"></div>
+
+        <!-- Wave Loading Overlay -->
+        <div id="wave-loader-overlay" class="wave-loader-overlay">
+            <div class="wave-loader">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
     </main>
     <script src="config.js"></script>
     <script src="API.js"></script>
