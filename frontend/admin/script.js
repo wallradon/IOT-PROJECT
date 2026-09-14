@@ -883,11 +883,10 @@ function renderEditUserPage(userId) {
     });
 }
 
-// ฟังก์ชันดึงข้อมูล (isSilent = true จะไม่อยู่ในสถานะ isLoading ที่แสดง Loading Spinner)
 async function initData(isSilent = false) {
     if (!isSilent) {
         isLoading = true;
-        refreshCurrentPage(); // แสดง Loading Spinner เฉพาะการโหลดครั้งแรก
+        refreshCurrentPage(); // show loading spinner only first load
     }
 
     try {
@@ -903,7 +902,7 @@ async function initData(isSilent = false) {
         if (!isSilent) {
             isLoading = false;
         }
-        // อัปเดตข้อมูลบน UI โดยไม่ล้างหน้าจอเป็นสปินเนอร์
+        // update UI without loading spinner
         refreshCurrentPage();
     }
 }
@@ -914,6 +913,7 @@ initData();
 setInterval(() => {
     initData();
 }, 5000);
+
 
 // ===================== Logout System =====================
 const logoutBtn = document.getElementById('logoutBtn');
