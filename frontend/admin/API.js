@@ -229,3 +229,28 @@ async function updateAccount(userId, accountData) {
         return null;
     }
 }
+
+async function getVisitorBarcode(userId) {
+    try {
+        const token = localStorage.getItem('token');
+        const fullUrl = new URL(`visitor-barcode/latest/${userId}`, API_BASE_URL);
+        
+        const res = await fetch(fullUrl, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error fetching visitor barcode:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}

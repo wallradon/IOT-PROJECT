@@ -46,6 +46,7 @@ checkAuth();
 const navItems = document.querySelectorAll('nav li[data-target]'); // Get nav items
 
 let currentPageParams = null; // Store current params for refreshing
+let currentPageTarget = null; // Store current page target
 
 /**
  * Function to change page (Page Router)
@@ -53,6 +54,7 @@ let currentPageParams = null; // Store current params for refreshing
  * @param {Object} params - Other parameters for the target page (e.g. { id: 1, carIndex: 0 })
 */
 function showPage(target, params) {
+    currentPageTarget = target;
     if (params !== undefined) {
         currentPageParams = params || null;
     }
@@ -92,11 +94,9 @@ showPage('vehicle');
  * Use after fetch API is done
  */
 function refreshCurrentPage() {
-    // Find active menu and re-render page
-    const activeLi = document.querySelector('nav li.user-select');
-    if (activeLi) {
-        const target = activeLi.dataset.target;
-        renderUserPage(target, currentPageParams);
+    // 100% block refresh when in edit user page to prevent input loss
+    if (currentPageTarget && currentPageTarget !== 'editUser') {
+        renderUserPage(currentPageTarget, currentPageParams);
     }
 }
 
@@ -129,8 +129,7 @@ function renderUserPage(target, params) {
         if (loadingContainer) {
             loadingContainer.replaceChildren();
             const p = document.createElement('p');
-            p.className = 'loading-text';
-            p.style.color = 'red';
+            p.className = 'loading-text error-text';
             p.textContent = `Error loading data. Please try again (HTTP Code: ${fetchStatus})`;
             loadingContainer.append(p);
         }
@@ -162,7 +161,7 @@ function renderVehicleList(data) {
     const vehicleDataContainer = document.querySelector('#VehicleData');
     if (!vehicleDataContainer) return; // Stop if container not found
 
-    vehicleDataContainer.replaceChildren(); // Clear previous content
+    const tempContainer = document.createElement('div');
     let foundCount = 0; // Count found vehicles
 
     // Loop to check each user data
@@ -186,7 +185,7 @@ function renderVehicleList(data) {
         h2Record.textContent = recordText;
 
         row.append(h2Type, h2Plate, h2Record);
-        vehicleDataContainer.append(row);
+        tempContainer.append(row);
     });
 
     // If no vehicles found, show alert
@@ -194,7 +193,11 @@ function renderVehicleList(data) {
         const p = document.createElement('p');
         p.className = 'loading-text';
         p.textContent = 'No vehicle data found';
-        vehicleDataContainer.append(p);
+        tempContainer.append(p);
+    }
+
+    if (vehicleDataContainer.innerHTML !== tempContainer.innerHTML) {
+        vehicleDataContainer.innerHTML = tempContainer.innerHTML;
     }
 }
 
@@ -208,15 +211,14 @@ function renderUserList(users) {
     const userDataContainer = document.querySelector('#UserData');
     if (!userDataContainer) return;
 
-    userDataContainer.replaceChildren(); // Clear previous content
+    const tempContainer = document.createElement('div');
 
     // Loop to create HTML for users
     users.filter(user => user.role === "member").forEach((user, index) => {
         const userDiv = document.createElement('div');
-        userDiv.className = 'User';
+        userDiv.className = 'User clickable-user';
         userDiv.dataset.id = user.id;
         userDiv.dataset.target = 'userDetail';
-        userDiv.style.cursor = 'pointer';
 
         const h2Index = document.createElement('h2');
         h2Index.textContent = index + 1;
@@ -236,8 +238,12 @@ function renderUserList(users) {
 
         actionsDiv.append(deleteBtn);
         userDiv.append(h2Index, h2House, actionsDiv);
-        userDataContainer.append(userDiv);
+        tempContainer.append(userDiv);
     });
+    
+    if (userDataContainer.innerHTML !== tempContainer.innerHTML) {
+        userDataContainer.innerHTML = tempContainer.innerHTML;
+    }
     console.log(users);
 }
 
@@ -246,7 +252,7 @@ function renderUserList(users) {
  * Function to render user details and vehicles
  * @param {number} userId - User ID
  */
-function renderUserDetail(userId) {
+async function renderUserDetail(userId) {
     // Find user by ID
     const user = UsersData.find(u => u.id === userId);
     console.log(user);
@@ -256,14 +262,28 @@ function renderUserDetail(userId) {
         : [];
 
     const userDetailContainer = document.querySelector('#page-userDetail');
-    userDetailContainer.replaceChildren();
+
+    const tempContainer = document.createElement('div');
+
+    const backBtnContainer = document.createElement('div');
+    backBtnContainer.className = 'back-btn-container';
+    const backBtn = document.createElement('a');
+    backBtn.href = '#';
+    backBtn.className = 'back-btn';
+    backBtn.dataset.target = 'user';
+    backBtn.innerHTML = '&laquo; ย้อนกลับ (Back)';
+    backBtnContainer.append(backBtn);
+    tempContainer.append(backBtnContainer);
 
     // Prevent app from freezing if user is not found
     if (!user) {
         const p = document.createElement('p');
         p.className = 'loading-text';
         p.textContent = 'User not found';
-        userDetailContainer.append(p);
+        tempContainer.append(p);
+        if (userDetailContainer.innerHTML !== tempContainer.innerHTML) {
+            userDetailContainer.innerHTML = tempContainer.innerHTML;
+        }
         return;
     }
 
@@ -299,6 +319,23 @@ function renderUserDetail(userId) {
     pMemDate.textContent = `Member Start Date: ${user.memberStartDate ?? '-'} | Expire Date: ${user.memberExpireDate ?? '-'}`;
     timeData.append(pRegDate, pMemDate);
     homeDetail.append(timeData);
+
+    try {
+        const result = await getVisitorBarcode(userId);
+        if (result && result.success && result.exists && result.data && result.data.status === "ACTIVE") {
+            const visitorData = document.createElement('div');
+            visitorData.className = 'TimeData';
+            
+            const pVisitorCode = document.createElement('p');
+            pVisitorCode.className = 'homeList';
+            pVisitorCode.textContent = `Visitor Barcode: ${result.data.barcode} | Expire Date: ${result.data.expireDate}`;
+            
+            visitorData.append(pVisitorCode);
+            homeDetail.append(visitorData);
+        }
+    } catch (error) {
+        console.error('Error fetching visitor barcode:', error);
+    }
 
     // Vehicle section
     const vehicleUser = document.createElement('section');
@@ -366,7 +403,11 @@ function renderUserDetail(userId) {
     editBtn.textContent = 'แก้ไขข้อมูลลูกบ้าน (Edit User)';
     editBtnContainer.append(editBtn);
 
-    userDetailContainer.append(homeDetail, vehicleUser, editBtnContainer);
+    tempContainer.append(homeDetail, vehicleUser, editBtnContainer);
+
+    if (userDetailContainer.innerHTML !== tempContainer.innerHTML) {
+        userDetailContainer.innerHTML = tempContainer.innerHTML;
+    }
 }
 
 
@@ -385,13 +426,28 @@ function renderEachVehicle(userId, vehiclePlate) {
     const timeStamp = VeLog.filter(t => t.plate === vehiclePlate);
 
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
-    vehicleDetailContainer.replaceChildren();
+    
+    const tempContainer = document.createElement('div');
+
+    const backBtnContainer = document.createElement('div');
+    backBtnContainer.className = 'back-btn-container';
+    const backBtn = document.createElement('a');
+    backBtn.href = '#';
+    backBtn.className = 'back-btn';
+    backBtn.dataset.target = 'userDetail';
+    backBtn.dataset.id = userId;
+    backBtn.innerHTML = '&laquo; ย้อนกลับ (Back)';
+    backBtnContainer.append(backBtn);
+    tempContainer.append(backBtnContainer);
 
     if (vData.length === 0) {
         const p = document.createElement('p');
         p.className = 'loading-text';
         p.textContent = 'Owner not found';
-        vehicleDetailContainer.append(p);
+        tempContainer.append(p);
+        if (vehicleDetailContainer.innerHTML !== tempContainer.innerHTML) {
+            vehicleDetailContainer.innerHTML = tempContainer.innerHTML;
+        }
         return;
     }
 
@@ -399,7 +455,10 @@ function renderEachVehicle(userId, vehiclePlate) {
         const p = document.createElement('p');
         p.className = 'loading-text';
         p.textContent = 'Vehicle not found for this owner';
-        vehicleDetailContainer.append(p);
+        tempContainer.append(p);
+        if (vehicleDetailContainer.innerHTML !== tempContainer.innerHTML) {
+            vehicleDetailContainer.innerHTML = tempContainer.innerHTML;
+        }
         return;
     }
 
@@ -419,9 +478,8 @@ function renderEachVehicle(userId, vehiclePlate) {
 
     const createItem = (text, isBold = false) => {
         const div = document.createElement('div');
-        div.className = 'v-item';
+        div.className = isBold ? 'v-item v-item-bold' : 'v-item';
         div.textContent = text;
-        if (isBold) div.style.fontWeight = 'bold';
         return div;
     };
 
@@ -466,7 +524,11 @@ function renderEachVehicle(userId, vehiclePlate) {
 
     vGrid.append(timeInList, timeOutList);
     card.append(vTitle, vDate, vGrid);
-    vehicleDetailContainer.append(card);
+    tempContainer.append(card);
+
+    if (vehicleDetailContainer.innerHTML !== tempContainer.innerHTML) {
+        vehicleDetailContainer.innerHTML = tempContainer.innerHTML;
+    }
 }
 
 // ===================== Global Click Event Delegation =====================
@@ -546,6 +608,17 @@ function renderEditUserPage(userId) {
     if (!pageContainer) return;
 
     pageContainer.replaceChildren();
+
+    const backBtnContainer = document.createElement('div');
+    backBtnContainer.className = 'back-btn-container';
+    const backBtn = document.createElement('a');
+    backBtn.href = '#';
+    backBtn.className = 'back-btn';
+    backBtn.dataset.target = 'userDetail';
+    backBtn.dataset.id = userId;
+    backBtn.innerHTML = '&laquo; ย้อนกลับ (Back)';
+    backBtnContainer.append(backBtn);
+    pageContainer.append(backBtnContainer);
 
     const user = UsersData.find(u => u.id === userId) || {};
 
@@ -628,6 +701,59 @@ function renderEditUserPage(userId) {
         return group;
     };
 
+    const memberStatusGroup = document.createElement('div');
+    memberStatusGroup.className = 'form-group member-status-group';
+    
+    const statusLabel = document.createElement('label');
+    statusLabel.className = 'form-label';
+    statusLabel.innerHTML = `สถานะสมาชิก (Membership):<br>เริ่ม (Start): <b>${user.memberStartDate || '-'}</b><br>หมดอายุ (Expire): <b>${user.memberExpireDate || '-'}</b>`;
+    
+    const renewBtn = document.createElement('button');
+    renewBtn.type = 'button';
+    renewBtn.className = 'submit-btn renew-btn';
+    renewBtn.textContent = 'ต่ออายุ 1 ปี (Renew)';
+    
+    renewBtn.onclick = () => {
+        const today = new Date();
+        const startDay = String(today.getDate()).padStart(2, '0');
+        const startMonth = String(today.getMonth() + 1).padStart(2, '0');
+        const startYear = today.getFullYear();
+        
+        const newStart = `${startDay}-${startMonth}-${startYear}`;
+        const newExpire = `${startDay}-${startMonth}-${startYear + 1}`;
+        
+        showConfirmPopup('ยืนยันการต่ออายุ', `คุณต้องการต่ออายุสมาชิกไปจนถึงวันที่ ${newExpire} ใช่หรือไม่?`, async () => {
+            const updateData = {
+                houseNumber: form.houseNumber.value,
+                ownerName: form.ownerName.value,
+                role: "member",
+                memberStartDate: newStart,
+                memberExpireDate: newExpire
+            };
+            if (user.Telegram_ID !== undefined) updateData.Telegram_ID = user.Telegram_ID;
+            if (form.registerDate.value) {
+                const regVal = form.registerDate.value;
+                const regParts = regVal.split("-");
+                if (regParts[0].length === 4) {
+                    updateData.registerDate = `${regParts[2]}-${regParts[1]}-${regParts[0]}`;
+                } else {
+                    updateData.registerDate = regVal;
+                }
+            }
+
+            const result = await updateUser(user.id, updateData);
+            if (result && result.success) {
+                showToast("ต่ออายุสำเร็จเรียบร้อย!", "สำเร็จ", "success");
+                await getUser(gUsers); // Refresh global data
+                renderEditUserPage(user.id); // Re-render this page
+            } else {
+                showToast("เกิดข้อผิดพลาดในการต่ออายุ", "ข้อผิดพลาด", "error");
+            }
+        });
+    };
+    
+    memberStatusGroup.append(statusLabel, renewBtn);
+
     form.append(
         createFormGroup('houseNumber', 'House Number', 'text', houseNumber),
         createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
@@ -635,8 +761,7 @@ function renderEditUserPage(userId) {
         createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...', 'new-password'),
         createFormGroup('confirmPassword', 'Confirm New Password (ปล่อยว่างหากไม่เปลี่ยน)', 'password', '', 'ยืนยันรหัสผ่านใหม่...', 'new-password'),
         createFormGroup('registerDate', 'Register Date', 'date', registerDate),
-        createFormGroup('memberStartDate', 'Member Start Date', 'date', memberStartDate),
-        createFormGroup('memberExpireDate', 'Member Expire Date', 'date', memberExpireDate)
+        memberStatusGroup
     );
 
     const vehiclesContainer = document.createElement('div');
@@ -737,8 +862,7 @@ function renderEditUserPage(userId) {
 
     const submitBtn = document.createElement('button');
     submitBtn.type = 'submit';
-    submitBtn.className = 'submit-btn';
-    submitBtn.style.marginTop = '20px';
+    submitBtn.className = 'submit-btn save-btn';
     submitBtn.textContent = 'บันทึกข้อมูล (Save)';
     form.append(submitBtn);
 
@@ -782,8 +906,8 @@ function renderEditUserPage(userId) {
         }
 
         if (form.registerDate.value) updateData.registerDate = formatDate(form.registerDate.value);
-        if (form.memberStartDate.value) updateData.memberStartDate = formatDate(form.memberStartDate.value);
-        if (form.memberExpireDate.value) updateData.memberExpireDate = formatDate(form.memberExpireDate.value);
+        if (user.memberStartDate) updateData.memberStartDate = user.memberStartDate;
+        if (user.memberExpireDate) updateData.memberExpireDate = user.memberExpireDate;
 
         console.log("PUT payload to API:", updateData);
 

@@ -1090,4 +1090,77 @@ header {
         width: 100%;
         box-sizing: border-box;
     }
+
+    .back-btn-container {
+        max-width: 100%;
+        margin: 10px auto;
+        padding: 0 15px;
+    }
+    
+    .back-btn {
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+}
+
+/* ===================== Back Button Styles ===================== */
+.back-btn-container {
+    width: 100%;
+    max-width: 930px;
+    margin: 10px auto;
+    padding: 0 10px;
+    display: flex;
+    justify-content: flex-end;
+    box-sizing: border-box;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--color-primary);
+    color: var(--color-white);
+    padding: 12px 24px;
+    border-radius: 24px;
+    border: 2px solid var(--color-primary);
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.back-btn:hover {
+    background-color: var(--color-white);
+    color: var(--color-primary);
+    transform: translateX(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ===================== JS Inline Styles Replacement ===================== */
+.error-text {
+    color: var(--color-danger, red);
+}
+.clickable-user {
+    cursor: pointer;
+}
+.v-item-bold {
+    font-weight: bold;
+}
+.member-status-group {
+    background-color: #f1f1f1;
+    padding: 15px;
+    border-radius: 8px;
+}
+.renew-btn {
+    margin-top: 10px;
+    background-color: var(--color-success, #27ae60) !important;
+    border-color: var(--color-success, #27ae60) !important;
+}
+.renew-btn:hover {
+    background-color: #219653 !important;
+    border-color: #219653 !important;
+    color: var(--color-white) !important;
+}
+.save-btn {
+    margin-top: 20px;
 }
