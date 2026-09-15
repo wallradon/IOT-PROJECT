@@ -14,6 +14,7 @@ body {
     padding: 0;
     background-color: var(--color-bg);
     font-family: "Prompt", serif;
+    overflow-x: hidden;
 }
 
 h1,
@@ -328,14 +329,14 @@ header {
     font-size: 1.2rem;
     font-weight: 600;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .edit-user-btn:hover {
     background-color: var(--color-primary);
     color: var(--color-white);
     border-color: var(--color-primary);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
     transform: translateY(-2px);
 }
 
@@ -455,6 +456,7 @@ header {
 #page-editUser {
     padding: 20px;
 }
+
 .edit-user-container {
     width: 100%;
     max-width: 600px;
@@ -462,33 +464,39 @@ header {
     background-color: var(--color-white);
     padding: 30px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 .edit-user-title {
     color: var(--color-primary);
     text-align: center;
     margin-bottom: 20px;
 }
+
 .edit-user-form {
     display: flex;
     flex-direction: column;
     gap: 15px;
 }
+
 .form-group {
     display: flex;
     flex-direction: column;
 }
+
 .form-label {
     font-weight: 500;
     color: var(--color-primary);
     margin-bottom: 5px;
 }
+
 .form-input {
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-family: 'Prompt', sans-serif;
 }
+
 .submit-btn {
     margin-top: 10px;
     padding: 12px;
@@ -502,6 +510,7 @@ header {
     font-size: 16px;
     transition: background-color 0.3s;
 }
+
 .submit-btn:hover {
     background-color: var(--color-secondary);
 }
@@ -523,10 +532,12 @@ header {
     transition: opacity 0.3s ease;
     backdrop-filter: blur(5px);
 }
+
 .confirm-popup-overlay.active {
     opacity: 1;
     pointer-events: auto;
 }
+
 .confirm-popup-box {
     background-color: var(--color-white);
     padding: 30px;
@@ -538,26 +549,32 @@ header {
     transform: translateY(20px);
     transition: transform 0.3s ease;
 }
+
 .confirm-popup-overlay.active .confirm-popup-box {
     transform: translateY(0);
 }
+
 .popup-title {
     color: var(--color-primary);
     font-size: 24px;
     margin-bottom: 15px;
 }
+
 .popup-message {
     color: #555;
     font-size: 16px;
     margin-bottom: 25px;
     line-height: 1.5;
 }
+
 .popup-actions {
     display: flex;
     justify-content: center;
     gap: 15px;
 }
-.popup-cancel-btn, .popup-confirm-btn {
+
+.popup-cancel-btn,
+.popup-confirm-btn {
     padding: 10px 20px;
     border: none;
     border-radius: 12px;
@@ -567,17 +584,21 @@ header {
     transition: all 0.2s ease;
     font-family: 'Prompt', sans-serif;
 }
+
 .popup-cancel-btn {
     background-color: #e0e0e0;
     color: #333;
 }
+
 .popup-cancel-btn:hover {
     background-color: #ccc;
 }
+
 .popup-confirm-btn {
     background-color: #e74c3c;
     color: var(--color-white);
 }
+
 .popup-confirm-btn:hover {
     background-color: #c0392b;
     transform: translateY(-2px);
@@ -685,11 +706,9 @@ header {
     left: -50%;
     width: 200%;
     height: 200%;
-    background: radial-gradient(
-        circle,
-        rgba(255, 255, 255, 0.1),
-        rgba(255, 255, 255, 0)
-    );
+    background: radial-gradient(circle,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0));
     transform: rotate(45deg);
     transition: all 0.5s ease-in-out;
 }
@@ -837,11 +856,238 @@ header {
 }
 
 @keyframes wave-animation {
-    0%, 40%, 100% {
+
+    0%,
+    40%,
+    100% {
         transform: scaleY(0.4);
     }
+
     20% {
         transform: scaleY(1);
     }
 }
-
+
+/* ===================== Responsive Design ===================== */
+
+/* Tablet & Smaller Desktop */
+@media screen and (max-width: 1366px) {
+    .main-content {
+        grid-template-columns: 15rem 1fr;
+    }
+    .main-content .user-details.active .User,
+    .main-content .user-details.active .headUserData {
+        min-width: unset;
+        width: calc(100% - 20px);
+        grid-template-columns: 1fr 1fr 1fr;
+        padding: 15px 20px;
+        box-sizing: border-box;
+    }
+
+    .main-content .user-details.active .VehicleRow,
+    .main-content .user-details.active .headVehicleData {
+        min-width: unset;
+        width: calc(100% - 20px);
+        grid-template-columns: 1fr 1fr 1fr !important;
+        box-sizing: border-box;
+    }
+
+    .search-container {
+        padding: 0 20px;
+        box-sizing: border-box;
+    }
+}
+
+/* Mobile */
+@media screen and (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        height: auto;
+        padding: 20px 15px;
+        gap: 10px;
+    }
+
+    header img {
+        order: 1;
+        margin: 0 auto;
+    }
+
+    .head-content {
+        order: 2;
+        margin-top: 0;
+        font-size: 1.5rem;
+    }
+
+    .logout-btn-header {
+        order: 3;
+        margin-top: 5px;
+        width: 100%;
+        max-width: 200px;
+    }
+
+    .main-content {
+        grid-template-columns: 1fr;
+    }
+
+    .main-content nav ul {
+        display: flex;
+        flex-direction: column;
+        padding: 15px 20px;
+        margin: 0 auto;
+        gap: 5px;
+        position: relative;
+    }
+
+    .main-content nav ul li {
+        display: none;
+        margin: 0;
+        padding: 15px 20px;
+        font-size: 16px;
+        border-radius: 24px;
+        text-align: left;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+
+    .main-content nav ul li.user-select {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .main-content nav ul li.user-select::after {
+        content: '▼';
+        font-size: 12px;
+        opacity: 0.8;
+    }
+
+    .main-content nav ul:hover li,
+    .main-content nav ul:active li {
+        display: block;
+    }
+
+    .main-content nav ul:hover li.user-select,
+    .main-content nav ul:active li.user-select {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+
+    .main-content nav ul:hover li:not(.user-select),
+    .main-content nav ul:active li:not(.user-select) {
+        border: 2px solid var(--color-primary);
+        color: var(--color-primary);
+        background-color: var(--color-white);
+        margin-top: 2px;
+    }
+
+    .main-content .user-details.active .headUserData,
+    .main-content .user-details.active .headVehicleData {
+        display: none !important;
+    }
+
+    .main-content .user-details.active .User {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 15px;
+        padding: 20px;
+        border: 1px solid var(--color-border);
+    }
+
+    .main-content .user-details.active .User a,
+    .main-content .user-details.active .User .user-actions {
+        justify-self: center;
+        margin: 0;
+    }
+
+    .main-content .user-details.active .VehicleRow {
+        grid-template-columns: 1fr !important;
+        text-align: center;
+        gap: 10px;
+        padding: 15px;
+        border: 1px solid var(--color-border);
+        border-radius: 24px;
+        margin: 10px;
+        background-color: var(--color-secondary);
+        box-sizing: border-box;
+    }
+
+    .main-content .user-details.active .VehicleRow h2:last-child {
+        text-align: center;
+    }
+
+    .search-container {
+        justify-content: center;
+        padding: 0 10px;
+    }
+
+    .search-container input {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .moreUserde.active .homeDetail .homeNumber,
+    .moreUserde.active .homeDetail .nameOwner,
+    .moreUserde.active .homeDetail .TimeData {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+    }
+
+    .moreUserde.active .homeDetail .homeNumber .homeList,
+    .moreUserde.active .homeDetail .nameOwner .homeList,
+    .moreUserde.active .homeDetail .TimeData .homeList {
+        padding: 10px;
+    }
+
+    .moreUserde.active .vehicleUser .headVlist {
+        grid-template-columns: 1fr;
+    }
+
+    .v-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .edit-user-container {
+        margin: 20px auto;
+        padding: 20px;
+        width: 90%;
+        box-sizing: border-box;
+    }
+
+    .edit-vehicles-header {
+        display: none;
+    }
+
+    .edit-vehicle-row {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 15px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        padding: 15px;
+        border: 1px solid #ddd;
+    }
+
+    .edit-vehicle-row .vehicle-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        align-items: center;
+    }
+
+    .modern-success-message {
+        min-width: unset;
+        width: 100%;
+        box-sizing: border-box;
+    }
+}

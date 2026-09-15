@@ -1,17 +1,5 @@
 "use strict"
 
-// // ===================== Security Utilities =====================
-// function escapeHTML(str) {
-//     if (str === null || str === undefined) return '';
-//     return String(str)
-//         .replace(/&/g, '&amp;')
-//         .replace(/</g, '&lt;')
-//         .replace(/>/g, '&gt;')
-//         .replace(/"/g, '&quot;')
-//         .replace(/'/g, '&#39;');
-// }
-
-
 // ===================== Global App State =====================
 const gUsers = "users/getUsers"; // User data path
 const gVehicles = "vehicles/getVehicles"; // Vehicle data path
