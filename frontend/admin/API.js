@@ -234,7 +234,7 @@ async function getVisitorBarcode(userId) {
     try {
         const token = localStorage.getItem('token');
         const fullUrl = new URL(`visitor-barcode/latest/${userId}`, API_BASE_URL);
-        
+
         const res = await fetch(fullUrl, {
             method: 'GET',
             headers: {
@@ -252,5 +252,65 @@ async function getVisitorBarcode(userId) {
         console.log("Error fetching visitor barcode:", err);
         if (fetchStatus === 0) fetchStatus = 500;
         return null;
+    }
+}
+
+async function postKeyGen(key_gen) {
+    try {
+        const fullUrl = new URL(`generate-key`, API_BASE_URL);
+
+        const res = await fetch(fullUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                key_gen: key_gen,
+                state: "ACTIVE"
+            })
+        });
+
+        fetchStatus = res.status;
+        const result = await res.json();
+
+        if (!res.ok) throw new Error(result.message || `HTTP error: ${res.status}`);
+
+        return result;
+    } catch (err) {
+        console.log("Error generating key:", err);
+        if (fetchStatus === 0) fetchStatus = 500;
+        return null;
+    }
+}
+
+
+async function getKeyGen() {
+    try {
+        // Create URL by combining API_BASE_URL and endpoint path
+        const fullUrl = new URL('generate-key', API_BASE_URL);
+
+        // Send GET Request to endpoint
+        const res = await fetch(fullUrl);
+
+        // Update response status code (e.g. 200, 404, 500)
+        fetchStatus = res.status;
+
+        // If HTTP status is not ok, jump to catch block
+        if (!res.ok) throw new Error(`HTTP error: ${res.status}`);
+
+        // Convert response data to JSON
+        const data = await res.json();
+
+        // Return the data to the caller
+        return data;
+
+    } catch (err) {
+        console.log("Error fetching data:", err);
+
+        // If fetchStatus is 0, request didn't reach server (e.g. no internet)
+        // Set error code to 500 to show on UI (Error State)
+        if (fetchStatus === 0) fetchStatus = 500;
+
+        return null; // Return null on error
     }
 }

@@ -20,6 +20,7 @@
             <ul>
                 <li data-target="vehicle">VEHICLE DATA</li>
                 <li id="selectUs" data-target="user">USER DATA</li>
+                <li data-target="genKey">GEN KEY</li>
             </ul>
         </nav>
         <!-- VEHICLE-->
@@ -58,6 +59,19 @@
         <!-- edit user -->
         <section class="page" id="page-editUser">
             <section class="dataLoading"></section>
+        </section>
+
+        <!-- genKey -->
+        <section class="page" id="page-genKey">
+            <div class="headUserData center-title">
+                <h2>GENERATE KEY</h2>
+            </div>
+            <section class="dataLoading" id="GenKeyData">
+                <div class="gen-key-container">
+                    <h1 id="display-gen-key" class="gen-key-display">------</h1>
+                    <button id="btn-generate-key" class="submit-btn gen-key-btn">GENERATE KEY</button>
+                </div>
+            </section>
         </section>
 
         <!-- Custom Confirm Popup -->

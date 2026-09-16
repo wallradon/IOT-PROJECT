@@ -69,10 +69,11 @@ async function handleRegister(e) {
     const fullname = document.getElementById('reg-fullname').value.trim();
     const houseno = document.getElementById('reg-houseno').value.trim();
     const username = document.getElementById('reg-username').value.trim().toLowerCase();
+    const regKey = document.getElementById('reg-key') ? document.getElementById('reg-key').value.trim() : '';
     const password = document.getElementById('reg-password').value;
 
     // Validations (ตรวจความถูกต้อง)
-    if (!fullname || !houseno || !username || !password) {
+    if (!fullname || !houseno || !username || !regKey || !password) {
         return alert('กรุณากรอกข้อมูลให้ครบทุกช่อง');
     }
     if (username.length < 4) return alert('ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
@@ -95,6 +96,7 @@ async function handleRegister(e) {
         houseNumber: houseno,
         ownerName: fullname,
         username: username, // ส่ง username ไปด้วยเพื่อไว้เชื่อมข้อมูลกับระบบ Login
+        key: regKey,
         role: "member",
         registerDate: formatDate(today),
         memberStartDate: formatDate(today),
@@ -104,6 +106,23 @@ async function handleRegister(e) {
     try {
         showLoader();
 
+        // 🔑 Validate Registration Key
+        const getKeyRes = await fetch(`https://api-node-iot.onrender.com/api/generate-key`);
+        const getKeyResult = await getKeyRes.json();
+
+        if (!getKeyRes.ok) {
+            throw new Error(getKeyResult.message || 'ไม่สามารถตรวจสอบคีย์ลงทะเบียนได้');
+        }
+
+        const keyList = getKeyResult.data || getKeyResult;
+        const matchedKey = Array.isArray(keyList) ? keyList.find(k => k.key_gen === regKey && k.state === 'ACTIVE') : null;
+        console.log("keyList", keyList);
+
+        if (!matchedKey) {
+            throw new Error('คีย์สำหรับลงทะเบียนไม่ถูกต้อง หรือหมดอายุแล้ว');
+        } else {
+            console.log("matchedKey", matchedKey);
+        }
 
         // 🚀 ยิง POST ที่ 1 : บันทึกข้อมูลลูกบ้านลง Cloud (Onrender)
         const dataResponse = await fetch('https://api-node-iot.onrender.com/api/users/createUser', {
@@ -111,6 +130,7 @@ async function handleRegister(e) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataPayload)
         });
+
         const dataResult = await dataResponse.json();
 
         if (!dataResponse.ok) {
@@ -142,8 +162,25 @@ async function handleRegister(e) {
                 throw new Error(authResult.message || 'ไม่สามารถสร้างบัญชีผู้ใช้ (Login) ได้');
             }
 
-            // แสดง Custom Modal แทน Alert
-            document.getElementById('modal-user-id').textContent = createdUser.id;
+            // put update key
+            const putKey = await fetch(`https://api-node-iot.onrender.com/api/generate-key/${matchedKey.key_gen}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    state: 'NON-ACTIVE' // เปลี่ยนเป็น NON-ACTIVE หรือสถานะที่ต้องการ
+                })
+            });
+
+            if (!putKey.ok) {
+                throw new Error('ไม่สามารถอัปเดตสถานะคีย์ได้');
+            } else {
+                console.log(`Update State Key: ${matchedKey.key_gen} is used`)
+            }
+
+            // แสดง Custom Modal
+
             document.getElementById('success-modal').classList.add('show');
             document.getElementById('form-register').reset();
 

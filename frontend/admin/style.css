@@ -875,6 +875,7 @@ header {
     .main-content {
         grid-template-columns: 15rem 1fr;
     }
+
     .main-content .user-details.active .User,
     .main-content .user-details.active .headUserData {
         min-width: unset;
@@ -948,7 +949,7 @@ header {
         font-size: 16px;
         border-radius: 24px;
         text-align: left;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         cursor: pointer;
     }
 
@@ -1096,7 +1097,7 @@ header {
         margin: 10px auto;
         padding: 0 15px;
     }
-    
+
     .back-btn {
         font-size: 14px;
         padding: 10px 20px;
@@ -1140,27 +1141,63 @@ header {
 .error-text {
     color: var(--color-danger, red);
 }
+
 .clickable-user {
     cursor: pointer;
 }
+
 .v-item-bold {
     font-weight: bold;
 }
+
 .member-status-group {
     background-color: #f1f1f1;
     padding: 15px;
     border-radius: 8px;
 }
+
 .renew-btn {
     margin-top: 10px;
     background-color: var(--color-success, #27ae60) !important;
     border-color: var(--color-success, #27ae60) !important;
 }
+
 .renew-btn:hover {
     background-color: #219653 !important;
     border-color: #219653 !important;
     color: var(--color-white) !important;
 }
+
 .save-btn {
     margin-top: 20px;
+}
+
+/* ===================== Gen Key Page Styles ===================== */
+.headUserData.center-title {
+    display: flex;
+    justify-content: center;
+    margin: 3rem;
+}
+
+.gen-key-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+}
+
+.gen-key-display {
+    font-size: 4rem;
+    letter-spacing: 10px;
+    margin-bottom: 3rem;
+    font-weight: bold;
+    color: #333;
+}
+
+.gen-key-btn {
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
 }

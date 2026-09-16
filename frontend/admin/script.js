@@ -110,6 +110,10 @@ function renderUserPage(target, params) {
     // 1. Find target page element
     const targetPage = document.querySelector(`#page-${target}`);
 
+    if (target === 'genKey') {
+        return; // Do not clear the static genKey page
+    }
+
     // 2. Find loading container in target page
     let loadingContainer = null;
     if (targetPage) {
@@ -142,7 +146,8 @@ function renderUserPage(target, params) {
         userDetail: (params) => renderUserDetail(Number(params?.id)),
         editUser: (params) => renderEditUserPage(Number(params?.id)),
         vehicleDetail: (params) => renderEachVehicle(Number(params?.id), String(params?.carPlate)),
-        vehicle: () => renderVehicleList(VeLog)
+        vehicle: () => renderVehicleList(VeLog),
+        genKey: () => { }
     };
 
     if (renderRoutes[target]) {
@@ -240,7 +245,7 @@ function renderUserList(users) {
         userDiv.append(h2Index, h2House, actionsDiv);
         tempContainer.append(userDiv);
     });
-    
+
     if (userDataContainer.innerHTML !== tempContainer.innerHTML) {
         userDataContainer.innerHTML = tempContainer.innerHTML;
     }
@@ -325,11 +330,11 @@ async function renderUserDetail(userId) {
         if (result && result.success && result.exists && result.data && result.data.status === "ACTIVE") {
             const visitorData = document.createElement('div');
             visitorData.className = 'TimeData';
-            
+
             const pVisitorCode = document.createElement('p');
             pVisitorCode.className = 'homeList';
             pVisitorCode.textContent = `Visitor Barcode: ${result.data.barcode} | Expire Date: ${result.data.expireDate}`;
-            
+
             visitorData.append(pVisitorCode);
             homeDetail.append(visitorData);
         }
@@ -426,7 +431,7 @@ function renderEachVehicle(userId, vehiclePlate) {
     const timeStamp = VeLog.filter(t => t.plate === vehiclePlate);
 
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
-    
+
     const tempContainer = document.createElement('div');
 
     const backBtnContainer = document.createElement('div');
@@ -480,6 +485,7 @@ function renderEachVehicle(userId, vehiclePlate) {
         const div = document.createElement('div');
         div.className = isBold ? 'v-item v-item-bold' : 'v-item';
         div.textContent = text;
+
         return div;
     };
 
@@ -530,7 +536,25 @@ function renderEachVehicle(userId, vehiclePlate) {
         vehicleDetailContainer.innerHTML = tempContainer.innerHTML;
     }
 }
+// generate key
 
+async function generateKey() {
+    const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const display = document.getElementById('display-gen-key');
+    if (display) {
+        const key = result.toUpperCase();
+        display.textContent = key;
+        console.log(key);
+        const post = await postKeyGen(key);
+        const get = await getKeyGen();
+        console.log("post: ", post);
+        console.log("get: ", get);
+    }
+}
 // ===================== Global Click Event Delegation =====================
 // Use event delegation in .main-content to avoid adding new event listeners
 document.querySelector('.main-content').addEventListener('click', async (e) => {
@@ -587,6 +611,13 @@ document.querySelector('.main-content').addEventListener('click', async (e) => {
                 }
             }
         );
+        return;
+    }
+
+    const genKeyBtn = e.target.closest('#btn-generate-key');
+    if (genKeyBtn) {
+        e.preventDefault();
+        await generateKey();
         return;
     }
 
@@ -703,25 +734,25 @@ function renderEditUserPage(userId) {
 
     const memberStatusGroup = document.createElement('div');
     memberStatusGroup.className = 'form-group member-status-group';
-    
+
     const statusLabel = document.createElement('label');
     statusLabel.className = 'form-label';
     statusLabel.innerHTML = `สถานะสมาชิก (Membership):<br>เริ่ม (Start): <b>${user.memberStartDate || '-'}</b><br>หมดอายุ (Expire): <b>${user.memberExpireDate || '-'}</b>`;
-    
+
     const renewBtn = document.createElement('button');
     renewBtn.type = 'button';
     renewBtn.className = 'submit-btn renew-btn';
     renewBtn.textContent = 'ต่ออายุ 1 ปี (Renew)';
-    
+
     renewBtn.onclick = () => {
         const today = new Date();
         const startDay = String(today.getDate()).padStart(2, '0');
         const startMonth = String(today.getMonth() + 1).padStart(2, '0');
         const startYear = today.getFullYear();
-        
+
         const newStart = `${startDay}-${startMonth}-${startYear}`;
         const newExpire = `${startDay}-${startMonth}-${startYear + 1}`;
-        
+
         showConfirmPopup('ยืนยันการต่ออายุ', `คุณต้องการต่ออายุสมาชิกไปจนถึงวันที่ ${newExpire} ใช่หรือไม่?`, async () => {
             const updateData = {
                 houseNumber: form.houseNumber.value,
@@ -751,7 +782,7 @@ function renderEditUserPage(userId) {
             }
         });
     };
-    
+
     memberStatusGroup.append(statusLabel, renewBtn);
 
     form.append(
@@ -987,7 +1018,6 @@ function renderEditUserPage(userId) {
         }
     });
 }
-
 // ===================== Loader System =====================
 function showLoader() {
     const loader = document.getElementById('wave-loader-overlay');
@@ -1032,6 +1062,7 @@ initData();
 setInterval(() => {
     initData(true); // true = silent mode (don't show loading spinner)
 }, 5000);
+
 
 
 // ===================== Logout System =====================

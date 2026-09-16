@@ -99,6 +99,14 @@
                 <p class="form-desc">สร้างบัญชีผู้ใช้สำหรับลูกบ้าน Smart Village</p>
 
                 <div class="input-group">
+                    <label for="reg-key">คีย์สำหรับลงทะเบียน (Registration Key)</label>
+                    <div class="input-wrapper">
+                        <i class="fa-solid fa-key input-icon"></i>
+                        <input type="text" id="reg-key" placeholder="กรอกคีย์สำหรับลงทะเบียน" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
                     <label for="reg-fullname">ชื่อ - นามสกุล</label>
                     <div class="input-wrapper">
                         <i class="fa-solid fa-id-card input-icon"></i>
@@ -156,13 +164,6 @@
                 <i class="fa-solid fa-circle-check modal-icon"></i>
             </div>
             <h2 class="modal-title">ลงทะเบียนสมาชิกสำเร็จ!</h2>
-            <p class="modal-desc">ไอดีของลูกบ้านคือ: <strong id="modal-user-id"></strong></p>
-            <div class="telegram-box">
-                <i class="fa-brands fa-telegram"></i>
-                <p>กรุณานำไอดีนี้ไปใช้ลงทะเบียนกับบอท Telegram</p>
-                <a href="https://t.me/SmartVillageVCCESBot" target="_blank"
-                    class="telegram-link">@SmartVillageVCCESBot</a>
-            </div>
             <button class="btn-submit modal-close-btn" onclick="closeSuccessModal()">
                 <span>ตกลง</span>
             </button>
