@@ -257,7 +257,8 @@ async function getVisitorBarcode(userId) {
 
 async function postKeyGen(key_gen) {
     try {
-        const fullUrl = new URL(`generate-key`, API_BASE_URL);
+        // Send POST request to create generate key
+        const fullUrl = new URL(`createGenerateKey`, API_BASE_URL);
 
         const res = await fetch(fullUrl, {
             method: 'POST',
@@ -287,7 +288,7 @@ async function postKeyGen(key_gen) {
 async function getKeyGen() {
     try {
         // Create URL by combining API_BASE_URL and endpoint path
-        const fullUrl = new URL('generate-key', API_BASE_URL);
+        const fullUrl = new URL('generate-key/all', API_BASE_URL);
 
         // Send GET Request to endpoint
         const res = await fetch(fullUrl);

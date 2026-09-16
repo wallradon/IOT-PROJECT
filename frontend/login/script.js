@@ -107,7 +107,7 @@ async function handleRegister(e) {
         showLoader();
 
         // 🔑 Validate Registration Key
-        const getKeyRes = await fetch(`${CONFIG.API_BASE_URL}generate-key`);
+        const getKeyRes = await fetch(`${CONFIG.API_BASE_URL}generate-key/all`);
         const getKeyResult = await getKeyRes.json();
 
         if (!getKeyRes.ok) {
