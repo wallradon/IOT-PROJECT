@@ -547,12 +547,26 @@ async function generateKey() {
     const display = document.getElementById('display-gen-key');
     if (display) {
         const key = result.toUpperCase();
-        display.textContent = key;
-        console.log(key);
-        const post = await postKeyGen(key);
-        const get = await getKeyGen();
-        console.log("post: ", post);
-        console.log("get: ", get);
+        console.log("Generating key:", key);
+        
+        showLoader(); // เรียกใช้ตัวโหลดแบบคลื่น
+        
+        try {
+            const post = await postKeyGen(key);
+            if (post) {
+                display.textContent = key;
+                showToast("สร้างคีย์ใหม่สำเร็จ", "สำเร็จ", "success");
+                const get = await getKeyGen();
+                console.log("get: ", get);
+            } else {
+                showToast("ไม่สามารถสร้างคีย์ได้", "ผิดพลาด", "error");
+            }
+        } catch (error) {
+            console.error("Error generating key:", error);
+            showToast("เกิดข้อผิดพลาดในการสร้างคีย์", "ผิดพลาด", "error");
+        } finally {
+            hideLoader(); // ปิดตัวโหลดเมื่อเสร็จสิ้นการทำงาน
+        }
     }
 }
 // ===================== Global Click Event Delegation =====================

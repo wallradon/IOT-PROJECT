@@ -69,7 +69,7 @@ async function handleRegister(e) {
     const fullname = document.getElementById('reg-fullname').value.trim();
     const houseno = document.getElementById('reg-houseno').value.trim();
     const username = document.getElementById('reg-username').value.trim().toLowerCase();
-    const regKey = document.getElementById('reg-key') ? document.getElementById('reg-key').value.trim() : '';
+    const regKey = document.getElementById('reg-key') ? document.getElementById('reg-key').value.trim().toUpperCase() : '';
     const password = document.getElementById('reg-password').value;
 
     // Validations (ตรวจความถูกต้อง)
@@ -107,7 +107,7 @@ async function handleRegister(e) {
         showLoader();
 
         // 🔑 Validate Registration Key
-        const getKeyRes = await fetch(`https://api-node-iot.onrender.com/api/generate-key`);
+        const getKeyRes = await fetch(`${CONFIG.API_BASE_URL}generate-key`);
         const getKeyResult = await getKeyRes.json();
 
         if (!getKeyRes.ok) {
@@ -125,7 +125,7 @@ async function handleRegister(e) {
         }
 
         // 🚀 ยิง POST ที่ 1 : บันทึกข้อมูลลูกบ้านลง Cloud (Onrender)
-        const dataResponse = await fetch('https://api-node-iot.onrender.com/api/users/createUser', {
+        const dataResponse = await fetch(`${CONFIG.API_BASE_URL}users/createUser`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(dataPayload)
@@ -137,7 +137,7 @@ async function handleRegister(e) {
             throw new Error(dataResult.message || 'สร้างบัญชี Login สำเร็จ แต่ไม่สามารถบันทึกข้อมูลลูกบ้านได้');
         } else {
             // ดึงข้อมูลจาก getUsers เพื่อหา ID ของลูกบ้านที่เพิ่งสร้าง
-            const usersRes = await fetch('https://api-node-iot.onrender.com/api/users/getUsers');
+            const usersRes = await fetch(`${CONFIG.API_BASE_URL}users/getUsers`);
             const usersList = await usersRes.json();
 
             // หาข้อมูลที่ตรงกับบ้านเลขที่และชื่อ (reverse เพื่อหาข้อมูลที่เพิ่งสร้างล่าสุด)
@@ -151,7 +151,7 @@ async function handleRegister(e) {
             authPayload.user_id = createdUser.id;
 
             // 🚀 ยิง POST ที่ 2 : สร้างบัญชีสำหรับ Login
-            const authResponse = await fetch('https://api-node-iot.onrender.com/api/auth/register', {
+            const authResponse = await fetch(`${CONFIG.API_BASE_URL}auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(authPayload)
@@ -159,11 +159,17 @@ async function handleRegister(e) {
             const authResult = await authResponse.json();
             // ถ้าสร้างบัญชีล็อกอินไม่สำเร็จ ให้หยุดการทำงานและแจ้งเตือนเลย
             if (!authResponse.ok) {
+                // ลบ User ที่เพิ่งสร้างทิ้ง เพื่อไม่ให้เป็นข้อมูลขยะ
+                try {
+                    await fetch(`${CONFIG.API_BASE_URL}users/deleteUser/${createdUser.id}`, { method: 'DELETE' });
+                } catch (delErr) {
+                    console.error("Failed to delete orphaned user:", delErr);
+                }
                 throw new Error(authResult.message || 'ไม่สามารถสร้างบัญชีผู้ใช้ (Login) ได้');
             }
 
             // put update key
-            const putKey = await fetch(`https://api-node-iot.onrender.com/api/generate-key/${matchedKey.key_gen}`, {
+            const putKey = await fetch(`${CONFIG.API_BASE_URL}generate-key/${matchedKey.key_gen}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -209,7 +215,7 @@ async function handleLogin(e) {
     try {
         showLoader();
         // ส่งข้อมูลไปตรวจสอบที่หลังบ้าน (Backend API)
-        const response = await fetch(`https://api-node-iot.onrender.com/api/auth/login`, {
+        const response = await fetch(`${CONFIG.API_BASE_URL}auth/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, password })
@@ -227,7 +233,7 @@ async function handleLogin(e) {
 
             try {
                 // ดึงข้อมูล users จาก Cloud API
-                const usersResponse = await fetch('https://api-node-iot.onrender.com/api/users/getUsers');
+                const usersResponse = await fetch(`${CONFIG.API_BASE_URL}users/getUsers`);
                 const usersList = await usersResponse.json();
                 console.log(usersList);
                 // หา user ที่ตรงกับ ID ที่ได้มาตอนล็อกอิน
