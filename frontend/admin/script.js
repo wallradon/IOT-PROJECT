@@ -249,7 +249,7 @@ function renderUserList(users) {
     if (userDataContainer.innerHTML !== tempContainer.innerHTML) {
         userDataContainer.innerHTML = tempContainer.innerHTML;
     }
-    console.log(users);
+    // console.log(users);
 }
 
 // ===================== Render User Detail Page =====================
@@ -260,7 +260,7 @@ function renderUserList(users) {
 async function renderUserDetail(userId) {
     // Find user by ID
     const user = UsersData.find(u => u.id === userId);
-    console.log(user);
+    // console.log(user);
     // Find all vehicles of this user
     const userVehicles = Array.isArray(vehiclesData)
         ? vehiclesData.filter(v => v.user_id === userId)
@@ -548,9 +548,9 @@ async function generateKey() {
     if (display) {
         const key = result.toUpperCase();
         console.log("Generating key:", key);
-        
+
         showLoader(); // เรียกใช้ตัวโหลดแบบคลื่น
-        
+
         try {
             const post = await postKeyGen(key);
             if (post) {
@@ -804,7 +804,6 @@ function renderEditUserPage(userId) {
         createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
         createFormGroup('username', 'Username', 'text', user.username || '', 'ใส่ Username ใหม่...', 'username'),
         createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...', 'new-password'),
-        createFormGroup('confirmPassword', 'Confirm New Password (ปล่อยว่างหากไม่เปลี่ยน)', 'password', '', 'ยืนยันรหัสผ่านใหม่...', 'new-password'),
         createFormGroup('registerDate', 'Register Date', 'date', registerDate),
         memberStatusGroup
     );
@@ -934,41 +933,41 @@ function renderEditUserPage(userId) {
 
         const ID_USER = Number(form.dataset.userId || userId);
 
-        // Ensure passwords match if entered
-        if (form.password.value !== form.confirmPassword.value) {
-            showToast("รหัสผ่านใหม่และยืนยันรหัสผ่านไม่ตรงกัน", "ข้อผิดพลาด", "error");
-            return;
-        }
-
+        // Build update user payload with fallback to old user data if field is empty
         const updateData = {
-            houseNumber: form.houseNumber.value,
-            ownerName: form.ownerName.value,
-            role: "member"
+            houseNumber: form.houseNumber.value.trim() || user.houseNumber || "",
+            ownerName: form.ownerName.value.trim() || user.ownerName || "",
+            role: user.role || "member",
+            registerDate: form.registerDate.value ? formatDate(form.registerDate.value) : (user.registerDate || ""),
+            memberStartDate: user.memberStartDate || "",
+            memberExpireDate: user.memberExpireDate || ""
         };
 
         if (user.Telegram_ID !== undefined) {
             updateData.Telegram_ID = user.Telegram_ID;
         }
 
-        if (form.registerDate.value) updateData.registerDate = formatDate(form.registerDate.value);
-        if (user.memberStartDate) updateData.memberStartDate = user.memberStartDate;
-        if (user.memberExpireDate) updateData.memberExpireDate = user.memberExpireDate;
-
         console.log("PUT payload to API:", updateData);
 
         const result = await updateUser(ID_USER, updateData);
 
         let accountError = false;
-        if (form.username.value || form.password.value) {
-            const accountData = {};
-            if (form.username.value) accountData.username = form.username.value;
-            if (form.password.value) accountData.password = form.password.value;
+        const newUsername = form.username ? form.username.value.trim() : "";
+        const newPassword = form.password ? form.password.value.trim() : "";
 
-            if (Object.keys(accountData).length > 0) {
-                const accountResult = await updateAccount(ID_USER, accountData);
-                if (!accountResult || !accountResult.success) {
-                    accountError = true;
-                }
+        // If username or password is provided, update account
+        if (newUsername || newPassword) {
+            const accountData = {
+                // Use new username if provided, otherwise fallback to existing username
+                username: newUsername || user.username || ""
+            };
+            if (newPassword) {
+                accountData.password = newPassword;
+            }
+
+            const accountResult = await updateAccount(ID_USER, accountData);
+            if (!accountResult || !accountResult.success) {
+                accountError = true;
             }
         }
 
@@ -1025,7 +1024,7 @@ function renderEditUserPage(userId) {
             }
 
             await initData(); // Re-fetch updated data
-            console.log("PUT UsersData: ", UsersData);
+            // console.log("PUT UsersData: ", UsersData);
             showPage("userDetail", { id: Number(ID_USER) }); // Back to user detail
         } else {
             showToast(result?.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล", "ข้อผิดพลาด", "error");
