@@ -648,12 +648,252 @@ document.querySelector('.main-content').addEventListener('click', async (e) => {
     showPage(target, params);
 });
 
-function renderEditUserPage(userId) {
-    const pageContainer = document.querySelector('#page-editUser');
-    if (!pageContainer) return;
+// ===================== Edit User Constants & Helpers =====================
 
-    pageContainer.replaceChildren();
+// Thai provinces constant list
+const PROVINCES_LIST = [
+    "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
+    "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม",
+    "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์",
+    "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์",
+    "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง",
+    "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรปราการ",
+    "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย",
+    "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
+];
 
+// Options for dropdowns
+const THAI_PROVINCE_OPTIONS = [
+    { value: '', label: '-- เลือกจังหวัด --' },
+    ...PROVINCES_LIST.map(p => ({ value: p, label: p }))
+];
+
+const VEHICLE_TYPE_OPTIONS = [
+    { value: '', label: '-- เลือกประเภทรถ --' },
+    { value: 'Car', label: 'รถยนต์ (Car)' },
+    { value: 'Motorcycle', label: 'รถมอเตอร์ไซค์ (Motorcycle)' }
+];
+
+// Format date string for HTML date input (DD-MM-YYYY -> YYYY-MM-DD)
+function formatDateForInput(dateStr) {
+    if (!dateStr || dateStr === "ERROR" || dateStr.trim() === "") return "";
+    if (dateStr.includes("-")) {
+        const parts = dateStr.split("-");
+        if (parts[0].length === 2 && parts[2].length === 4) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+        if (parts[0].length === 4 && parts[2].length === 2) {
+            return dateStr;
+        }
+    }
+    return "";
+}
+
+// Format date string for API payload (YYYY-MM-DD -> DD-MM-YYYY)
+function formatDateForPayload(dateStr) {
+    if (!dateStr) return "";
+    if (dateStr.includes("-")) {
+        const parts = dateStr.split("-");
+        if (parts[0].length === 4 && parts[2].length === 2) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
+    }
+    return dateStr;
+}
+
+// ===================== Edit User Event & Business Logic =====================
+
+// Handle membership renewal logic
+async function handleRenewMembership(user, form) {
+    const today = new Date();
+    const startDay = String(today.getDate()).padStart(2, '0');
+    const startMonth = String(today.getMonth() + 1).padStart(2, '0');
+    const startYear = today.getFullYear();
+
+    const newStart = `${startDay}-${startMonth}-${startYear}`;
+    const newExpire = `${startDay}-${startMonth}-${startYear + 1}`;
+
+    showConfirmPopup('ยืนยันการต่ออายุ', `คุณต้องการต่ออายุสมาชิกไปจนถึงวันที่ ${newExpire} ใช่หรือไม่?`, async () => {
+        const updateData = {
+            houseNumber: form.houseNumber.value,
+            ownerName: form.ownerName.value,
+            role: "member",
+            memberStartDate: newStart,
+            memberExpireDate: newExpire
+        };
+        if (user.Telegram_ID !== undefined) updateData.Telegram_ID = user.Telegram_ID;
+        if (form.registerDate.value) {
+            const regVal = form.registerDate.value;
+            const regParts = regVal.split("-");
+            if (regParts[0].length === 4) {
+                updateData.registerDate = `${regParts[2]}-${regParts[1]}-${regParts[0]}`;
+            } else {
+                updateData.registerDate = regVal;
+            }
+        }
+
+        const result = await updateUser(user.id, updateData);
+        if (result && result.success) {
+            showToast("ต่ออายุสำเร็จเรียบร้อย!", "สำเร็จ", "success");
+            await getUser(gUsers); // Refresh global data
+            renderEditUserPage(user.id); // Re-render this page
+        } else {
+            showToast("เกิดข้อผิดพลาดในการต่ออายุ", "ข้อผิดพลาด", "error");
+        }
+    });
+}
+
+// Handle form submission for edit user
+async function handleEditUserSubmit(e, userId, user, form) {
+    e.preventDefault();
+
+    const ID_USER = Number(form.dataset.userId || userId);
+
+    // Build update user payload
+    const updateData = {
+        houseNumber: form.houseNumber.value.trim() || user.houseNumber || "",
+        ownerName: form.ownerName.value.trim() || user.ownerName || "",
+        role: user.role || "member",
+        registerDate: form.registerDate.value ? formatDateForPayload(form.registerDate.value) : (user.registerDate || ""),
+        memberStartDate: user.memberStartDate || "",
+        memberExpireDate: user.memberExpireDate || ""
+    };
+
+    if (user.Telegram_ID !== undefined) {
+        updateData.Telegram_ID = user.Telegram_ID;
+    }
+
+    console.log("PUT payload to API:", updateData);
+
+    const result = await updateUser(ID_USER, updateData);
+
+    let accountError = false;
+    const newUsername = form.username ? form.username.value.trim() : "";
+    const newPassword = form.password ? form.password.value.trim() : "";
+
+    // Update account if username or password provided
+    if (newUsername || newPassword) {
+        const accountData = {
+            username: newUsername || user.username || ""
+        };
+        if (newPassword) {
+            accountData.password = newPassword;
+        }
+
+        const accountResult = await updateAccount(ID_USER, accountData);
+        if (!accountResult || !accountResult.success) {
+            accountError = true;
+        }
+    }
+
+    let vehicleAddError = false;
+    const newPlate = form.newPlate ? form.newPlate.value.trim() : '';
+    const newProvince = form.newProvince ? form.newProvince.value.trim() : '';
+    const newType = form.newType ? form.newType.value.trim() : '';
+
+    if (newPlate || newProvince || newType) {
+        if (!newPlate || !newProvince || !newType) {
+            showToast("กรุณากรอกข้อมูลรถใหม่ให้ครบถ้วน (ทะเบียน, จังหวัด, ประเภท)", "ข้อผิดพลาด", "error");
+            return;
+        }
+
+        const today = new Date();
+        const day = String(today.getDate()).padStart(2, '0');
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const year = today.getFullYear();
+        const regDateStr = `${day}/${month}/${year}`;
+
+        const vehiclePayload = {
+            user_id: ID_USER,
+            plate: newPlate,
+            province: newProvince,
+            type: newType,
+            registerDate: regDateStr
+        };
+
+        const addRes = await createVehicle(vehiclePayload);
+        if (!addRes || !addRes.success) {
+            vehicleAddError = true;
+        }
+    }
+
+    if (result && result.success) {
+        const pendingDeletes = form.dataset.pendingDeletes ? JSON.parse(form.dataset.pendingDeletes) : [];
+        let deleteErrors = 0;
+
+        for (const vId of pendingDeletes) {
+            const delRes = await deleteVehicle(vId);
+            if (!delRes || !delRes.success) deleteErrors++;
+        }
+
+        if (vehicleAddError) {
+            showToast(`อัปเดตข้อมูลสำเร็จ แต่เกิดข้อผิดพลาดในการเพิ่มรถใหม่`, "เตือน", "error");
+        } else if (deleteErrors > 0 && accountError) {
+            showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถและแก้ไขบัญชี`, "เตือน", "error");
+        } else if (deleteErrors > 0) {
+            showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถบางคัน`, "เตือน", "error");
+        } else if (accountError) {
+            showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการแก้ไขรหัสผ่าน/Username`, "เตือน", "error");
+        } else {
+            showToast(result.message || "บันทึกข้อมูลสำเร็จแล้ว", "สำเร็จ", "success");
+        }
+
+        await initData(); // Re-fetch updated data
+        showPage("userDetail", { id: Number(ID_USER) }); // Back to user detail
+    } else {
+        showToast(result?.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล", "ข้อผิดพลาด", "error");
+    }
+}
+
+// ===================== Edit User UI Display Functions =====================
+
+// Create form group element
+function createFormGroup(id, labelText, type, value, placeholder, autocomplete) {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    const label = document.createElement('label');
+    label.htmlFor = id;
+    label.className = 'form-label';
+    label.textContent = labelText;
+    const input = document.createElement('input');
+    input.type = type;
+    input.id = id;
+    input.name = id;
+    input.className = 'form-input';
+    if (value !== undefined) input.value = value;
+    if (placeholder) input.placeholder = placeholder;
+    if (autocomplete) input.autocomplete = autocomplete;
+    group.append(label, input);
+    return group;
+}
+
+// Create select dropdown group element
+function createSelectGroup(id, labelText, options, defaultValue = '') {
+    const group = document.createElement('div');
+    group.className = 'form-group';
+    const label = document.createElement('label');
+    label.htmlFor = id;
+    label.className = 'form-label';
+    label.textContent = labelText;
+    const select = document.createElement('select');
+    select.id = id;
+    select.name = id;
+    select.className = 'form-input';
+
+    options.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt.value;
+        option.textContent = opt.label;
+        if (opt.value === defaultValue) option.selected = true;
+        select.appendChild(option);
+    });
+
+    group.append(label, select);
+    return group;
+}
+
+// Render back button container
+function renderEditUserBackBtn(userId) {
     const backBtnContainer = document.createElement('div');
     backBtnContainer.className = 'back-btn-container';
     const backBtn = document.createElement('a');
@@ -663,89 +903,11 @@ function renderEditUserPage(userId) {
     backBtn.dataset.id = userId;
     backBtn.innerHTML = '&laquo; ย้อนกลับ (Back)';
     backBtnContainer.append(backBtn);
-    pageContainer.append(backBtnContainer);
+    return backBtnContainer;
+}
 
-    const user = UsersData.find(u => u.id === userId) || {};
-
-    const houseNumber = user.houseNumber || "ERROR";
-    const ownerName = user.ownerName || "ERROR";
-    const formatDateForInput = (dateStr) => {
-        if (!dateStr || dateStr === "ERROR" || dateStr.trim() === "") return "";
-        if (dateStr.includes("-")) {
-            const parts = dateStr.split("-");
-            if (parts[0].length === 2 && parts[2].length === 4) { // DD-MM-YYYY -> YYYY-MM-DD
-                return `${parts[2]}-${parts[1]}-${parts[0]}`;
-            }
-            if (parts[0].length === 4 && parts[2].length === 2) { // Already YYYY-MM-DD
-                return dateStr;
-            }
-        }
-        return "";
-    };
-
-    const registerDate = formatDateForInput(user.registerDate || "ERROR");
-    const memberStartDate = formatDateForInput(user.memberStartDate || "ERROR");
-    const memberExpireDate = formatDateForInput(user.memberExpireDate || "ERROR");
-
-    const userVehicles = Array.isArray(vehiclesData)
-        ? vehiclesData.filter(v => v.user_id === userId)
-        : [];
-
-    const container = document.createElement('div');
-    container.className = 'edit-user-container';
-
-    const title = document.createElement('h2');
-    title.className = 'edit-user-title';
-    title.textContent = 'แก้ไขข้อมูลลูกบ้าน (Edit User)';
-
-    const form = document.createElement('form');
-    form.id = 'editUserForm';
-    form.className = 'edit-user-form';
-    form.dataset.userId = user.id || userId || '';
-
-    const createFormGroup = (id, labelText, type, value, placeholder, autocomplete) => {
-        const group = document.createElement('div');
-        group.className = 'form-group';
-        const label = document.createElement('label');
-        label.htmlFor = id;
-        label.className = 'form-label';
-        label.textContent = labelText;
-        const input = document.createElement('input');
-        input.type = type;
-        input.id = id;
-        input.name = id;
-        input.className = 'form-input';
-        if (value !== undefined) input.value = value;
-        if (placeholder) input.placeholder = placeholder;
-        if (autocomplete) input.autocomplete = autocomplete;
-        group.append(label, input);
-        return group;
-    };
-
-    const createSelectGroup = (id, labelText, options, defaultValue = '') => {
-        const group = document.createElement('div');
-        group.className = 'form-group';
-        const label = document.createElement('label');
-        label.htmlFor = id;
-        label.className = 'form-label';
-        label.textContent = labelText;
-        const select = document.createElement('select');
-        select.id = id;
-        select.name = id;
-        select.className = 'form-input';
-
-        options.forEach(opt => {
-            const option = document.createElement('option');
-            option.value = opt.value;
-            option.textContent = opt.label;
-            if (opt.value === defaultValue) option.selected = true;
-            select.appendChild(option);
-        });
-
-        group.append(label, select);
-        return group;
-    };
-
+// Render member status group element
+function renderMemberStatusGroup(user, onRenewClick) {
     const memberStatusGroup = document.createElement('div');
     memberStatusGroup.className = 'form-group member-status-group';
 
@@ -757,57 +919,14 @@ function renderEditUserPage(userId) {
     renewBtn.type = 'button';
     renewBtn.className = 'submit-btn renew-btn';
     renewBtn.textContent = 'ต่ออายุ 1 ปี (Renew)';
-
-    renewBtn.onclick = () => {
-        const today = new Date();
-        const startDay = String(today.getDate()).padStart(2, '0');
-        const startMonth = String(today.getMonth() + 1).padStart(2, '0');
-        const startYear = today.getFullYear();
-
-        const newStart = `${startDay}-${startMonth}-${startYear}`;
-        const newExpire = `${startDay}-${startMonth}-${startYear + 1}`;
-
-        showConfirmPopup('ยืนยันการต่ออายุ', `คุณต้องการต่ออายุสมาชิกไปจนถึงวันที่ ${newExpire} ใช่หรือไม่?`, async () => {
-            const updateData = {
-                houseNumber: form.houseNumber.value,
-                ownerName: form.ownerName.value,
-                role: "member",
-                memberStartDate: newStart,
-                memberExpireDate: newExpire
-            };
-            if (user.Telegram_ID !== undefined) updateData.Telegram_ID = user.Telegram_ID;
-            if (form.registerDate.value) {
-                const regVal = form.registerDate.value;
-                const regParts = regVal.split("-");
-                if (regParts[0].length === 4) {
-                    updateData.registerDate = `${regParts[2]}-${regParts[1]}-${regParts[0]}`;
-                } else {
-                    updateData.registerDate = regVal;
-                }
-            }
-
-            const result = await updateUser(user.id, updateData);
-            if (result && result.success) {
-                showToast("ต่ออายุสำเร็จเรียบร้อย!", "สำเร็จ", "success");
-                await getUser(gUsers); // Refresh global data
-                renderEditUserPage(user.id); // Re-render this page
-            } else {
-                showToast("เกิดข้อผิดพลาดในการต่ออายุ", "ข้อผิดพลาด", "error");
-            }
-        });
-    };
+    renewBtn.onclick = onRenewClick;
 
     memberStatusGroup.append(statusLabel, renewBtn);
+    return memberStatusGroup;
+}
 
-    form.append(
-        createFormGroup('houseNumber', 'House Number', 'text', houseNumber),
-        createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
-        createFormGroup('username', 'Username', 'text', user.username || '', 'ใส่ Username ใหม่...', 'username'),
-        createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...', 'new-password'),
-        createFormGroup('registerDate', 'Register Date', 'date', registerDate),
-        memberStatusGroup
-    );
-
+// Render vehicles list and add vehicle section element
+function renderEditVehiclesSection(userVehicles) {
     const vehiclesContainer = document.createElement('div');
     vehiclesContainer.className = 'edit-vehicles-container';
 
@@ -860,7 +979,7 @@ function renderEditUserPage(userId) {
         vehiclesContainer.append(emptyDiv);
     }
 
-    // Add Vehicle Section inside Edit Form
+    // Add vehicle section inside edit form
     const addVehicleSection = document.createElement('div');
     addVehicleSection.className = 'add-vehicle-section';
 
@@ -871,38 +990,64 @@ function renderEditUserPage(userId) {
     const addVGrid = document.createElement('div');
     addVGrid.className = 'add-vehicle-grid';
 
-    const PROVINCES_LIST = [
-        "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
-        "ชัยภูมิ", "ชุมพร", "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม",
-        "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์",
-        "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์",
-        "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน", "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง",
-        "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร", "สงขลา", "สตูล", "สมุทรปราการ",
-        "สมุทรสงคราม", "สมุทรสาคร", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย",
-        "หนองบัวลำภู", "อ่างทอง", "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
-    ];
-
-    const thaiProvinces = [
-        { value: '', label: '-- เลือกจังหวัด --' },
-        ...PROVINCES_LIST.map(p => ({ value: p, label: p }))
-    ];
-
-    const vehicleTypes = [
-        { value: '', label: '-- เลือกประเภทรถ --' },
-        { value: 'Car', label: 'รถยนต์ (Car)' },
-        { value: 'Motorcycle', label: 'รถมอเตอร์ไซค์ (Motorcycle)' }
-    ];
-
     addVGrid.append(
         createFormGroup('newPlate', 'ทะเบียนรถ (Plate)', 'text', '', 'เช่น กข1277'),
-        createSelectGroup('newProvince', 'จังหวัด (Province)', thaiProvinces),
-        createSelectGroup('newType', 'ประเภท (Type)', vehicleTypes)
+        createSelectGroup('newProvince', 'จังหวัด (Province)', THAI_PROVINCE_OPTIONS),
+        createSelectGroup('newType', 'ประเภท (Type)', VEHICLE_TYPE_OPTIONS)
     );
 
     addVehicleSection.append(addVTitle, addVGrid);
     vehiclesContainer.append(addVehicleSection);
 
-    form.append(vehiclesContainer);
+    return vehiclesContainer;
+}
+
+// Render edit user page
+function renderEditUserPage(userId) {
+    const pageContainer = document.querySelector('#page-editUser');
+    if (!pageContainer) return;
+
+    pageContainer.replaceChildren();
+
+    // Render back button
+    pageContainer.append(renderEditUserBackBtn(userId));
+
+    const user = UsersData.find(u => u.id === userId) || {};
+    const houseNumber = user.houseNumber || "ERROR";
+    const ownerName = user.ownerName || "ERROR";
+    const registerDate = formatDateForInput(user.registerDate || "ERROR");
+
+    const userVehicles = Array.isArray(vehiclesData)
+        ? vehiclesData.filter(v => v.user_id === userId)
+        : [];
+
+    const container = document.createElement('div');
+    container.className = 'edit-user-container';
+
+    const title = document.createElement('h2');
+    title.className = 'edit-user-title';
+    title.textContent = 'แก้ไขข้อมูลลูกบ้าน (Edit User)';
+
+    const form = document.createElement('form');
+    form.id = 'editUserForm';
+    form.className = 'edit-user-form';
+    form.dataset.userId = user.id || userId || '';
+
+    // Member status element with renew handler
+    const memberStatusGroup = renderMemberStatusGroup(user, () => {
+        handleRenewMembership(user, form);
+    });
+
+    // Append form components
+    form.append(
+        createFormGroup('houseNumber', 'House Number', 'text', houseNumber),
+        createFormGroup('ownerName', 'Owner Name', 'text', ownerName),
+        createFormGroup('username', 'Username', 'text', user.username || '', 'ใส่ Username ใหม่...', 'username'),
+        createFormGroup('password', 'New Password (ปล่อยว่างหากไม่ต้องการเปลี่ยน)', 'password', '', 'ใส่รหัสผ่านใหม่...', 'new-password'),
+        createFormGroup('registerDate', 'Register Date', 'date', registerDate),
+        memberStatusGroup,
+        renderEditVehiclesSection(userVehicles)
+    );
 
     const submitBtn = document.createElement('button');
     submitBtn.type = 'submit';
@@ -913,123 +1058,8 @@ function renderEditUserPage(userId) {
     container.append(title, form);
     pageContainer.append(container);
 
-    const createdForm = document.querySelector("#editUserForm");
-    if (!createdForm) return;
-
-    createdForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-
-        // Convert YYYY-MM-DD to DD-MM-YYYY for API payload
-        const formatDate = (dateStr) => {
-            if (!dateStr) return "";
-            if (dateStr.includes("-")) {
-                const parts = dateStr.split("-");
-                if (parts[0].length === 4 && parts[2].length === 2) {
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            }
-            return dateStr;
-        };
-
-        const ID_USER = Number(form.dataset.userId || userId);
-
-        // Build update user payload with fallback to old user data if field is empty
-        const updateData = {
-            houseNumber: form.houseNumber.value.trim() || user.houseNumber || "",
-            ownerName: form.ownerName.value.trim() || user.ownerName || "",
-            role: user.role || "member",
-            registerDate: form.registerDate.value ? formatDate(form.registerDate.value) : (user.registerDate || ""),
-            memberStartDate: user.memberStartDate || "",
-            memberExpireDate: user.memberExpireDate || ""
-        };
-
-        if (user.Telegram_ID !== undefined) {
-            updateData.Telegram_ID = user.Telegram_ID;
-        }
-
-        console.log("PUT payload to API:", updateData);
-
-        const result = await updateUser(ID_USER, updateData);
-
-        let accountError = false;
-        const newUsername = form.username ? form.username.value.trim() : "";
-        const newPassword = form.password ? form.password.value.trim() : "";
-
-        // If username or password is provided, update account
-        if (newUsername || newPassword) {
-            const accountData = {
-                // Use new username if provided, otherwise fallback to existing username
-                username: newUsername || user.username || ""
-            };
-            if (newPassword) {
-                accountData.password = newPassword;
-            }
-
-            const accountResult = await updateAccount(ID_USER, accountData);
-            if (!accountResult || !accountResult.success) {
-                accountError = true;
-            }
-        }
-
-        let vehicleAddError = false;
-        const newPlate = form.newPlate ? form.newPlate.value.trim() : '';
-        const newProvince = form.newProvince ? form.newProvince.value.trim() : '';
-        const newType = form.newType ? form.newType.value.trim() : '';
-
-        if (newPlate || newProvince || newType) {
-            if (!newPlate || !newProvince || !newType) {
-                showToast("กรุณากรอกข้อมูลรถใหม่ให้ครบถ้วน (ทะเบียน, จังหวัด, ประเภท)", "ข้อผิดพลาด", "error");
-                return;
-            }
-
-            const today = new Date();
-            const day = String(today.getDate()).padStart(2, '0');
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const year = today.getFullYear();
-            const regDateStr = `${day}/${month}/${year}`;
-
-            const vehiclePayload = {
-                user_id: ID_USER,
-                plate: newPlate,
-                province: newProvince,
-                type: newType,
-                registerDate: regDateStr
-            };
-
-            const addRes = await createVehicle(vehiclePayload);
-            if (!addRes || !addRes.success) {
-                vehicleAddError = true;
-            }
-        }
-
-        if (result && result.success) {
-            const pendingDeletes = form.dataset.pendingDeletes ? JSON.parse(form.dataset.pendingDeletes) : [];
-            let deleteErrors = 0;
-
-            for (const vId of pendingDeletes) {
-                const delRes = await deleteVehicle(vId);
-                if (!delRes || !delRes.success) deleteErrors++;
-            }
-
-            if (vehicleAddError) {
-                showToast(`อัปเดตข้อมูลสำเร็จ แต่เกิดข้อผิดพลาดในการเพิ่มรถใหม่`, "เตือน", "error");
-            } else if (deleteErrors > 0 && accountError) {
-                showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถและแก้ไขบัญชี`, "เตือน", "error");
-            } else if (deleteErrors > 0) {
-                showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการลบรถบางคัน`, "เตือน", "error");
-            } else if (accountError) {
-                showToast(`อัปเดตข้อมูลสำเร็จ แต่มีข้อผิดพลาดในการแก้ไขรหัสผ่าน/Username`, "เตือน", "error");
-            } else {
-                showToast(result.message || "บันทึกข้อมูลสำเร็จแล้ว", "สำเร็จ", "success");
-            }
-
-            await initData(); // Re-fetch updated data
-            // console.log("PUT UsersData: ", UsersData);
-            showPage("userDetail", { id: Number(ID_USER) }); // Back to user detail
-        } else {
-            showToast(result?.message || "เกิดข้อผิดพลาดในการอัปเดตข้อมูล", "ข้อผิดพลาด", "error");
-        }
-    });
+    // Attach form submit listener
+    form.addEventListener("submit", (e) => handleEditUserSubmit(e, userId, user, form));
 }
 // ===================== Loader System =====================
 function showLoader() {
