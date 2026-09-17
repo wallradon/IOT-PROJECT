@@ -189,18 +189,7 @@ header {
             background-color: var(--color-primary);
         }
 
-        .VehicleRow,
-        .headVehicleData {
-            grid-template-columns: 10rem 1fr 1fr !important;
-
-            h2:nth-child(2) {
-                text-align: center;
-            }
-
-            h2:last-child {
-                text-align: right;
-            }
-        }
+        /* Vehicle table alignment overridden below */
 
         .search-container {
             margin: 15px 0 5px 0;
@@ -246,6 +235,7 @@ header {
 
         .homeNumber,
         .nameOwner,
+        .telegramIdInfo,
         .TimeData {
             display: flex;
             flex-direction: row;
@@ -889,7 +879,7 @@ header {
     .main-content .user-details.active .headVehicleData {
         min-width: unset;
         width: calc(100% - 20px);
-        grid-template-columns: 1fr 1fr 1fr !important;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr !important;
         box-sizing: border-box;
     }
 
@@ -1031,6 +1021,7 @@ header {
 
     .moreUserde.active .homeDetail .homeNumber,
     .moreUserde.active .homeDetail .nameOwner,
+    .moreUserde.active .homeDetail .telegramIdInfo,
     .moreUserde.active .homeDetail .TimeData {
         flex-direction: column;
         text-align: center;
@@ -1039,6 +1030,7 @@ header {
 
     .moreUserde.active .homeDetail .homeNumber .homeList,
     .moreUserde.active .homeDetail .nameOwner .homeList,
+    .moreUserde.active .homeDetail .telegramIdInfo .homeList,
     .moreUserde.active .homeDetail .TimeData .homeList {
         padding: 10px;
     }
@@ -1200,4 +1192,221 @@ header {
     font-size: 1.5rem;
     border-radius: 8px;
     cursor: pointer;
+}
+
+/* ===================== Clean Table & Badges Styling ===================== */
+.VehicleRow,
+.headVehicleData {
+    display: grid !important;
+    grid-template-columns: 10rem 10rem 7rem 1fr 1fr !important;
+    align-items: center !important;
+    min-width: 930px !important;
+    width: calc(100% - 20px) !important;
+    max-width: 1100px !important;
+    box-sizing: border-box !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+}
+
+.headVehicleData {
+    background-color: var(--color-primary) !important;
+    border-radius: 12px 12px 0 0 !important;
+    margin-top: 15px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.headVehicleData h2 {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #a0aec0 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#VehicleData {
+    margin: 0 0 15px 0 !important;
+    width: calc(100% - 20px) !important;
+    max-width: 1100px !important;
+    min-width: 930px !important;
+    box-sizing: border-box !important;
+    background-color: var(--color-secondary) !important;
+    border-radius: 0 0 12px 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.VehicleRow {
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: background-color 0.15s ease !important;
+}
+
+.VehicleRow:last-child {
+    border-bottom: none !important;
+}
+
+.VehicleRow:hover {
+    background-color: #454c57 !important;
+    transform: none !important;
+}
+
+.VehicleRow h2 {
+    font-size: 0.9rem !important;
+    font-weight: 400 !important;
+    color: var(--color-white) !important;
+}
+
+/* Explicit per-column text alignment for 100% match */
+.VehicleRow h2,
+.headVehicleData h2 {
+    margin: 0 !important;
+}
+
+.VehicleRow h2:nth-child(1),
+.headVehicleData h2:nth-child(1) {
+    text-align: left !important;
+}
+
+.VehicleRow h2:nth-child(2),
+.headVehicleData h2:nth-child(2) {
+    text-align: center !important;
+}
+
+.VehicleRow h2:nth-child(3),
+.headVehicleData h2:nth-child(3) {
+    text-align: center !important;
+}
+
+.VehicleRow h2:nth-child(4),
+.headVehicleData h2:nth-child(4) {
+    text-align: center !important;
+}
+
+.VehicleRow h2:nth-child(5),
+.headVehicleData h2:nth-child(5) {
+    text-align: center !important;
+}
+
+.clickable-vehicle {
+    cursor: pointer;
+}
+
+/* Compact rectangular badges like reference dashboard image */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.badge-parked {
+    background-color: #2b6cb0;
+    color: #ffffff;
+}
+
+.badge-timein {
+    background-color: #276749;
+    color: #c6f6d5;
+}
+
+.badge-timeout {
+    background-color: #9b2c2c;
+    color: #fed7d7;
+}
+
+.badge-empty {
+    color: #718096;
+    font-weight: 400;
+}
+
+/* ===================== User Data Table Styling ===================== */
+#page-user .headUserListData,
+#page-user .UserRowList {
+    display: grid !important;
+    grid-template-columns: 8rem 1fr 12rem !important;
+    align-items: center !important;
+    min-width: 930px !important;
+    width: calc(100% - 20px) !important;
+    max-width: 1100px !important;
+    box-sizing: border-box !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+}
+
+#page-user .headUserListData {
+    background-color: var(--color-primary) !important;
+    border-radius: 12px 12px 0 0 !important;
+    margin-top: 15px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+#page-user .headUserListData h2 {
+    font-size: 0.9rem !important;
+    font-weight: 600 !important;
+    color: #a0aec0 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#UserData {
+    margin: 0 0 15px 0 !important;
+    width: calc(100% - 20px) !important;
+    max-width: 1100px !important;
+    min-width: 930px !important;
+    box-sizing: border-box !important;
+    background-color: var(--color-secondary) !important;
+    border-radius: 0 0 12px 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+#page-user .UserRowList {
+    border-radius: 0 !important;
+    background-color: transparent !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    transition: background-color 0.15s ease !important;
+}
+
+#page-user .UserRowList:last-child {
+    border-bottom: none !important;
+}
+
+#page-user .UserRowList:hover {
+    background-color: #454c57 !important;
+    transform: none !important;
+}
+
+#page-user .UserRowList h2 {
+    font-size: 0.9rem !important;
+    font-weight: 400 !important;
+    color: var(--color-white) !important;
+}
+
+#page-user .headUserListData h2:nth-child(1),
+#page-user .UserRowList h2:nth-child(1) {
+    text-align: center !important;
+}
+
+#page-user .headUserListData h2:nth-child(2),
+#page-user .UserRowList h2:nth-child(2) {
+    text-align: center !important;
+}
+
+#page-user .headUserListData h2:nth-child(3) {
+    text-align: right !important;
+}
+
+#page-user .UserRowList .user-actions {
+    justify-self: end !important;
+}
+
+#page-user .delete-user-btn {
+    padding: 8px 16px !important;
+    font-size: 0.85rem !important;
+    border-radius: 6px !important;
 }

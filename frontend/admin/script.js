@@ -162,6 +162,15 @@ function renderUserPage(target, params) {
  * Function to render vehicle type, plate, and time in/out
  * @param {Array} data - All user data with vehicles
  */
+// Get vehicle icon helper
+function getVehicleIcon(type) {
+    if (!type || type === '-') return '🚗';
+    const lower = type.toLowerCase();
+    if (lower.includes('motorcycle') || lower.includes('มอเตอร์ไซค์') || lower.includes('จักรยาน')) return '🏍️';
+    if (lower.includes('truck') || lower.includes('บรรทุก')) return '🚚';
+    return '🚗';
+}
+
 function renderVehicleList(data) {
     const vehicleDataContainer = document.querySelector('#VehicleData');
     if (!vehicleDataContainer) return; // Stop if container not found
@@ -169,27 +178,52 @@ function renderVehicleList(data) {
     const tempContainer = document.createElement('div');
     let foundCount = 0; // Count found vehicles
 
-    // Loop to check each user data
+    // Loop to check each vehicle data
     data.forEach(d => {
-        const plate = d.plate || "-"; // Vehicle plate
-        const type = d.type || "-";   // Vehicle type (e.g. car, motorcycle)
+        // Find user to get house number
+        const user = UsersData.find(u => u.id === d.user_id);
+        const houseNumber = user?.houseNumber || "-";
+        const plate = d.plate || "-";
+        const type = d.type || "-";
 
         foundCount++;
-        const recordText = d.time_in ? `In: ${d.time_in ?? '-'} | Out: ${d.time_out ?? '-'}` : "No entry/exit records";
 
         const row = document.createElement('div');
-        row.className = 'User VehicleRow';
+        row.className = 'User VehicleRow clickable-vehicle';
+        if (d.user_id && d.plate) {
+            row.dataset.id = d.user_id;
+            row.dataset.carPlate = d.plate;
+            row.dataset.target = 'vehicleDetail';
+            row.title = 'Click to view vehicle detail';
+        }
 
+        // 1. Vehicle Type
         const h2Type = document.createElement('h2');
         h2Type.textContent = type;
 
+        // 2. License Plate
         const h2Plate = document.createElement('h2');
         h2Plate.textContent = plate;
 
-        const h2Record = document.createElement('h2');
-        h2Record.textContent = recordText;
+        // 3. House Number
+        const h2House = document.createElement('h2');
+        h2House.textContent = houseNumber;
 
-        row.append(h2Type, h2Plate, h2Record);
+        // 4. Time In
+        const h2TimeIn = document.createElement('h2');
+        h2TimeIn.textContent = d.time_in || "-";
+
+        // 5. Time Out
+        const h2TimeOut = document.createElement('h2');
+        if (d.time_out) {
+            h2TimeOut.textContent = d.time_out;
+        } else if (d.time_in) {
+            h2TimeOut.innerHTML = `<span class="badge badge-parked">in-park</span>`;
+        } else {
+            h2TimeOut.textContent = "-";
+        }
+
+        row.append(h2Type, h2Plate, h2House, h2TimeIn, h2TimeOut);
         tempContainer.append(row);
     });
 
@@ -221,9 +255,10 @@ function renderUserList(users) {
     // Loop to create HTML for users
     users.filter(user => user.role === "member").forEach((user, index) => {
         const userDiv = document.createElement('div');
-        userDiv.className = 'User clickable-user';
+        userDiv.className = 'User UserRowList clickable-user';
         userDiv.dataset.id = user.id;
         userDiv.dataset.target = 'userDetail';
+        userDiv.title = 'Click to view resident detail';
 
         const h2Index = document.createElement('h2');
         h2Index.textContent = index + 1;
@@ -309,9 +344,11 @@ async function renderUserDetail(userId) {
         return div;
     };
 
+    // Show User ID as Telegram ID
     homeDetail.append(
         createHomeRow('homeNumber', 'House Number', user.houseNumber),
-        createHomeRow('nameOwner', 'Owner Name', user.ownerName)
+        createHomeRow('nameOwner', 'Owner Name', user.ownerName),
+        createHomeRow('telegramIdInfo', 'Telegram ID', user.id)
     );
 
     const timeData = document.createElement('div');
@@ -429,7 +466,6 @@ function renderEachVehicle(userId, vehiclePlate) {
     const vehicle = vData.find(v => v.plate === vehiclePlate);
     // Get logs for this vehicle
     const timeStamp = VeLog.filter(t => t.plate === vehiclePlate);
-
     const vehicleDetailContainer = document.querySelector("#page-vehicleDetail");
 
     const tempContainer = document.createElement('div');
@@ -535,6 +571,7 @@ function renderEachVehicle(userId, vehiclePlate) {
     if (vehicleDetailContainer.innerHTML !== tempContainer.innerHTML) {
         vehicleDetailContainer.innerHTML = tempContainer.innerHTML;
     }
+    console.log("vehiclePlate", vehiclePlate);
 }
 // generate key
 
