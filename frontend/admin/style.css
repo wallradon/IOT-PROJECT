@@ -1398,11 +1398,15 @@ header {
 }
 
 #page-user .headUserListData h2:nth-child(3) {
-    text-align: right !important;
+    text-align: center !important;
+    padding-right: 25px !important;
 }
 
 #page-user .UserRowList .user-actions {
-    justify-self: end !important;
+    justify-self: center !important;
+    display: flex !important;
+    justify-content: center !important;
+    width: 100% !important;
 }
 
 #page-user .delete-user-btn {
