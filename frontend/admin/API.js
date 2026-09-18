@@ -8,6 +8,60 @@ const API_BASE_URL = CONFIG.API_BASE_URL;
 let fetchStatus = 0;
 
 /**
+ * Fetch NTP Time from WorldTimeAPI (Asia/Bangkok)
+ */
+async function getNtpTime() {
+    let ntpTime;
+    try {
+        const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Bangkok');
+        if (!timeRes.ok) throw new Error('NTP Error');
+        const timeData = await timeRes.json();
+        ntpTime = new Date(timeData.datetime);
+    } catch (e) {
+        console.warn("Failed to fetch NTP time, using local time", e);
+        ntpTime = new Date();
+    }
+    return ntpTime;
+}
+
+/**
+ * Format string or timestamp into YYYY-MM-DD HH:mm:ss (or just YYYY-MM-DD)
+ * @param {string|number|Date} dateVal 
+ * @param {boolean} includeTime 
+ */
+function formatToYMD(dateVal, includeTime = false) {
+    if (!dateVal || dateVal === '-') return '-';
+    let d;
+    if (dateVal instanceof Date) {
+        d = dateVal;
+    } else if (typeof dateVal === 'string' && dateVal.includes('/')) {
+        // Assume DD/MM/YYYY
+        const parts = dateVal.split(/[\s/:]+/);
+        if (parts.length >= 6) {
+            d = new Date(parts[2], parts[1] - 1, parts[0], parts[3], parts[4], parts[5]);
+        } else {
+            d = new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+    } else {
+        d = new Date(dateVal);
+    }
+
+    if (isNaN(d.getTime())) return String(dateVal);
+
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    const seconds = String(d.getSeconds()).padStart(2, '0');
+
+    if (includeTime) {
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+    return `${year}-${month}-${day}`;
+}
+
+/**
  * Function to get all users from JSON file or API (GET Request)
  * @param {string} path - URL or file path (e.g., './dataTest.json')
  */
@@ -140,6 +194,13 @@ async function getVeLog(path) {
         };
 
         combinedLogs.sort((a, b) => parseDate(b.time_in) - parseDate(a.time_in));
+
+        // Format dates to YYYY-MM-DD HH:mm:ss
+        combinedLogs = combinedLogs.map(log => ({
+            ...log,
+            time_in: log.time_in ? formatToYMD(parseDate(log.time_in), true) : '-',
+            time_out: log.time_out ? formatToYMD(parseDate(log.time_out), true) : '-'
+        }));
 
         // Save data to VeLog (Global State)
         VeLog = combinedLogs;

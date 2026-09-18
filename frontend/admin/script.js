@@ -371,10 +371,10 @@ async function renderUserDetail(userId) {
     timeData.className = 'TimeData';
     const pRegDate = document.createElement('p');
     pRegDate.className = 'homeList';
-    pRegDate.textContent = `Register Date: ${user.registerDate ?? '-'}`;
+    pRegDate.textContent = `Register Date: ${formatToYMD(user.registerDate)}`;
     const pMemDate = document.createElement('p');
     pMemDate.className = 'homeList';
-    pMemDate.textContent = `Member Start Date: ${user.memberStartDate ?? '-'} | Expire Date: ${user.memberExpireDate ?? '-'}`;
+    pMemDate.textContent = `Member Start Date: ${formatToYMD(user.memberStartDate)} | Expire Date: ${formatToYMD(user.memberExpireDate)}`;
     timeData.append(pRegDate, pMemDate);
     homeDetail.append(timeData);
 
@@ -386,7 +386,7 @@ async function renderUserDetail(userId) {
 
             const pVisitorCode = document.createElement('p');
             pVisitorCode.className = 'homeList';
-            pVisitorCode.textContent = `Visitor Barcode: ${result.data.barcode} | Expire Date: ${result.data.expireDate}`;
+            pVisitorCode.textContent = `Visitor Barcode: ${result.data.barcode} | Expire Date: ${formatToYMD(result.data.expireDate)}`;
 
             visitorData.append(pVisitorCode);
             homeDetail.append(visitorData);
@@ -528,7 +528,7 @@ function renderEachVehicle(userId, vehiclePlate) {
 
     const vDate = document.createElement('div');
     vDate.className = 'v-date';
-    vDate.textContent = `Register Date: ${vehicle.registerDate ?? '-'}`;
+    vDate.textContent = `Register Date: ${formatToYMD(vehicle.registerDate)}`;
 
     const vGrid = document.createElement('div');
     vGrid.className = 'v-grid';
@@ -727,7 +727,7 @@ const VEHICLE_TYPE_OPTIONS = [
     { value: 'Motorcycle', label: 'รถมอเตอร์ไซค์ (Motorcycle)' }
 ];
 
-// Format date string for HTML date input (DD-MM-YYYY -> YYYY-MM-DD)
+// Format date string for HTML date input (DD-MM-YYYY or DD/MM/YYYY -> YYYY-MM-DD)
 function formatDateForInput(dateStr) {
     if (!dateStr || dateStr === "ERROR" || dateStr.trim() === "") return "";
     if (dateStr.includes("-")) {
@@ -738,17 +738,22 @@ function formatDateForInput(dateStr) {
         if (parts[0].length === 4 && parts[2].length === 2) {
             return dateStr;
         }
+    } else if (dateStr.includes("/")) {
+        const parts = dateStr.split("/");
+        if (parts[0].length === 2 && parts[2].length === 4) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+        }
     }
     return "";
 }
 
-// Format date string for API payload (YYYY-MM-DD -> DD-MM-YYYY)
+// Format date string for API payload (Always YYYY-MM-DD)
 function formatDateForPayload(dateStr) {
     if (!dateStr) return "";
     if (dateStr.includes("-")) {
         const parts = dateStr.split("-");
         if (parts[0].length === 4 && parts[2].length === 2) {
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+            return `${parts[0]}-${parts[1]}-${parts[2]}`; // Keep YYYY-MM-DD
         }
     }
     return dateStr;
@@ -758,13 +763,13 @@ function formatDateForPayload(dateStr) {
 
 // Handle membership renewal logic
 async function handleRenewMembership(user, form) {
-    const today = new Date();
+    const today = await getNtpTime();
     const startDay = String(today.getDate()).padStart(2, '0');
     const startMonth = String(today.getMonth() + 1).padStart(2, '0');
     const startYear = today.getFullYear();
 
-    const newStart = `${startDay}-${startMonth}-${startYear}`;
-    const newExpire = `${startDay}-${startMonth}-${startYear + 1}`;
+    const newStart = `${startYear}-${startMonth}-${startDay}`;
+    const newExpire = `${startYear + 1}-${startMonth}-${startDay}`;
 
     showConfirmPopup('ยืนยันการต่ออายุ', `คุณต้องการต่ออายุสมาชิกไปจนถึงวันที่ ${newExpire} ใช่หรือไม่?`, async () => {
         const updateData = {
@@ -776,13 +781,7 @@ async function handleRenewMembership(user, form) {
         };
         if (user.Telegram_ID !== undefined) updateData.Telegram_ID = user.Telegram_ID;
         if (form.registerDate.value) {
-            const regVal = form.registerDate.value;
-            const regParts = regVal.split("-");
-            if (regParts[0].length === 4) {
-                updateData.registerDate = `${regParts[2]}-${regParts[1]}-${regParts[0]}`;
-            } else {
-                updateData.registerDate = regVal;
-            }
+            updateData.registerDate = formatDateForPayload(form.registerDate.value);
         }
 
         const result = await updateUser(user.id, updateData);
@@ -850,11 +849,11 @@ async function handleEditUserSubmit(e, userId, user, form) {
             return;
         }
 
-        const today = new Date();
+        const today = await getNtpTime();
         const day = String(today.getDate()).padStart(2, '0');
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const year = today.getFullYear();
-        const regDateStr = `${day}/${month}/${year}`;
+        const regDateStr = `${year}-${month}-${day}`;
 
         const vehiclePayload = {
             user_id: ID_USER,
@@ -966,7 +965,7 @@ function renderMemberStatusGroup(user, onRenewClick) {
 
     const statusLabel = document.createElement('label');
     statusLabel.className = 'form-label';
-    statusLabel.innerHTML = `สถานะสมาชิก (Membership):<br>เริ่ม (Start): <b>${user.memberStartDate || '-'}</b><br>หมดอายุ (Expire): <b>${user.memberExpireDate || '-'}</b>`;
+    statusLabel.innerHTML = `สถานะสมาชิก (Membership):<br>เริ่ม (Start): <b>${formatToYMD(user.memberStartDate)}</b><br>หมดอายุ (Expire): <b>${formatToYMD(user.memberExpireDate)}</b>`;
 
     const renewBtn = document.createElement('button');
     renewBtn.type = 'button';
