@@ -175,7 +175,8 @@ async function handleRegister(e) {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    state: 'NON-ACTIVE' // เปลี่ยนเป็น NON-ACTIVE หรือสถานะที่ต้องการ
+                    state: 'NON-ACTIVE', // เปลี่ยนเป็น NON-ACTIVE หรือสถานะที่ต้องการ
+                    houseNumber: createdUser.houseNumber
                 })
             });
 
