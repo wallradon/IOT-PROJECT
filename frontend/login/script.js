@@ -79,32 +79,50 @@ async function handleRegister(e) {
     if (username.length < 4) return alert('ชื่อผู้ใช้ต้องมีความยาวอย่างน้อย 4 ตัวอักษร');
     if (password.length < 6) return alert('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
 
-    // เตรียมเรื่องวันที่
-    const today = new Date();
-    const nextYear = new Date(today);
-    nextYear.setFullYear(today.getFullYear() + 1);
-    const formatDate = (date) => date.toISOString().split('T')[0];
-
-    // 📦 Payload 1: สำหรับระบบ Login (เก็บแค่ Username / Password)
-    const authPayload = {
-        username: username,
-        password: password
-    };
-
-    // 📦 Payload 2: สำหรับเก็บข้อมูลลูกบ้าน (ข้อมูลอื่นๆ)
-    const dataPayload = {
-        houseNumber: houseno,
-        ownerName: fullname,
-        username: username, // ส่ง username ไปด้วยเพื่อไว้เชื่อมข้อมูลกับระบบ Login
-        key: regKey,
-        role: "member",
-        registerDate: formatDate(today),
-        memberStartDate: formatDate(today),
-        memberExpireDate: formatDate(nextYear)
-    };
-
     try {
         showLoader();
+
+        // 🕒 เตรียมเรื่องวันที่โดยดึงเวลาจาก NTP (Asia/Bangkok)
+        let today;
+        try {
+            const timeRes = await fetch('https://worldtimeapi.org/api/timezone/Asia/Bangkok');
+            if (!timeRes.ok) throw new Error('NTP Error');
+            const timeData = await timeRes.json();
+            today = new Date(timeData.datetime);
+        } catch (e) {
+            console.warn("Failed to fetch NTP time, using local time", e);
+            today = new Date();
+        }
+
+        const nextYear = new Date(today);
+        nextYear.setFullYear(today.getFullYear() + 1);
+
+        // แปลงเป็นเวลาไทย YYYY-MM-DD
+        const formatDate = (date) => {
+            const d = new Date(date.toLocaleString('en-US', { timeZone: 'Asia/Bangkok' }));
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${year}-${month}-${day}`;
+        };
+
+        // 📦 Payload 1: สำหรับระบบ Login (เก็บแค่ Username / Password)
+        const authPayload = {
+            username: username,
+            password: password
+        };
+
+        // 📦 Payload 2: สำหรับเก็บข้อมูลลูกบ้าน (ข้อมูลอื่นๆ)
+        const dataPayload = {
+            houseNumber: houseno,
+            ownerName: fullname,
+            username: username, // ส่ง username ไปด้วยเพื่อไว้เชื่อมข้อมูลกับระบบ Login
+            key: regKey,
+            role: "member",
+            registerDate: formatDate(today),
+            memberStartDate: formatDate(today),
+            memberExpireDate: formatDate(nextYear)
+        };
 
         // 🔑 Validate Registration Key
         const getKeyRes = await fetch(`${CONFIG.API_BASE_URL}generate-key/all`);
