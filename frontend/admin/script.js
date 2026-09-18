@@ -53,6 +53,7 @@ let currentPageTarget = null; // Store current page target
  * @param {string} target - Target page name (e.g. 'home', 'user', 'vehicle')
  * @param {Object} params - Other parameters for the target page (e.g. { id: 1, carIndex: 0 })
 */
+
 function showPage(target, params) {
     currentPageTarget = target;
     if (params !== undefined) {
@@ -87,7 +88,6 @@ navItems.forEach(li => {
 
 // Show home page first when user logs in
 showPage('vehicle');
-
 
 /**
  * Refresh Current Page
@@ -162,12 +162,11 @@ function renderUserPage(target, params) {
  * Function to render vehicle type, plate, and time in/out
  * @param {Array} data - All user data with vehicles
  */
-// Get vehicle icon helper
+// Get vehicle icon helper (car or motorcycle)
 function getVehicleIcon(type) {
     if (!type || type === '-') return '🚗';
     const lower = type.toLowerCase();
-    if (lower.includes('motorcycle') || lower.includes('มอเตอร์ไซค์') || lower.includes('จักรยาน')) return '🏍️';
-    if (lower.includes('truck') || lower.includes('บรรทุก')) return '🚚';
+    if (lower.includes('motorcycle') || lower.includes('มอเตอร์ไซค์') || lower.includes('มอไซ') || lower.includes('มอไซค์')) return '🏍️';
     return '🚗';
 }
 
@@ -180,17 +179,30 @@ function renderVehicleList(data) {
 
     // Loop to check each vehicle data
     data.forEach(d => {
-        // Find user to get house number
-        const user = UsersData.find(u => u.id === d.user_id);
-        const houseNumber = user?.houseNumber || "-";
+        let houseNumberStr = "-";
+
+        if (d.isVisitor) {
+            // Visitor logic
+            if (d.houseNumber === null || d.houseNumber === undefined || String(d.houseNumber).trim() === "") {
+                houseNumberStr = "คนนอก";
+            } else {
+                houseNumberStr = `<span style="color: #007bff; font-weight: bold;">${d.houseNumber}</span>`;
+            }
+        } else {
+            // Find user to get house number for resident
+            const user = UsersData.find(u => u.id === d.user_id);
+            houseNumberStr = user?.houseNumber || "-";
+        }
+
         const plate = d.plate || "-";
         const type = d.type || "-";
 
         foundCount++;
 
         const row = document.createElement('div');
-        row.className = 'User VehicleRow clickable-vehicle';
-        if (d.user_id && d.plate) {
+        row.className = 'User VehicleRow';
+        if (d.user_id && d.plate && !d.isVisitor) {
+            row.classList.add('clickable-vehicle');
             row.dataset.id = d.user_id;
             row.dataset.carPlate = d.plate;
             row.dataset.target = 'vehicleDetail';
@@ -207,7 +219,11 @@ function renderVehicleList(data) {
 
         // 3. House Number
         const h2House = document.createElement('h2');
-        h2House.textContent = houseNumber;
+        if (d.isVisitor && d.houseNumber !== null && d.houseNumber !== undefined && String(d.houseNumber).trim() !== "") {
+            h2House.innerHTML = houseNumberStr;
+        } else {
+            h2House.textContent = houseNumberStr;
+        }
 
         // 4. Time In
         const h2TimeIn = document.createElement('h2');

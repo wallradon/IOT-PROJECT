@@ -77,7 +77,6 @@ async function getVehicles(path) {
 
 async function getVeLog(path) {
     try {
-
         // Create URL by combining API_BASE_URL and endpoint path
         const fullUrl = new URL(path, API_BASE_URL);
 
@@ -93,10 +92,57 @@ async function getVeLog(path) {
         // Convert response data to JSON
         const data = await res.json();
 
-        // Save data to VeLog (Global State)
+        let residentLogs = [];
         if (data.success) {
-            VeLog = data.data || [];
+            residentLogs = data.data || [];
         }
+
+        // Fetch Visitor logs
+        let visitorLogs = [];
+        try {
+            const visitorRes = await fetch('https://api-node-iot.onrender.com/api/access/visitor/logs');
+            if (visitorRes.ok) {
+                const visitorData = await visitorRes.json();
+                // Ensure data is array
+                const vDataArray = Array.isArray(visitorData.data) ? visitorData.data : (Array.isArray(visitorData) ? visitorData : []);
+                visitorLogs = vDataArray.map(v => ({
+                    id: v.id,
+                    barcode: v.barcode,
+                    plate: v.licenseplate,
+                    province: v.province,
+                    time_in: v.time_in,
+                    time_out: v.time_out,
+                    type: 'Visitor', // Default to Visitor or '-' 
+                    isVisitor: true,
+                    houseNumber: v.houseNumber
+                }));
+            }
+        } catch (visitorErr) {
+            console.error("Error fetching visitor logs:", visitorErr);
+        }
+
+        // Combine logs
+        let combinedLogs = [...residentLogs, ...visitorLogs];
+
+        // Sort by time_in descending (newest first)
+        const parseDate = (dateStr) => {
+            if (!dateStr || dateStr === '-') return 0;
+            // Parse "DD/MM/YYYY HH:mm:ss" or "DD/MM/YYYY"
+            const parts = dateStr.split(/[\s/:]+/);
+            if (parts.length >= 6) {
+                const [dd, mm, yyyy, h, m, s] = parts;
+                return new Date(yyyy, mm - 1, dd, h, m, s).getTime();
+            } else if (parts.length === 3) {
+                const [dd, mm, yyyy] = parts;
+                return new Date(yyyy, mm - 1, dd).getTime();
+            }
+            return new Date(dateStr).getTime() || 0;
+        };
+
+        combinedLogs.sort((a, b) => parseDate(b.time_in) - parseDate(a.time_in));
+
+        // Save data to VeLog (Global State)
+        VeLog = combinedLogs;
 
     } catch (err) {
         console.log("Error fetching data:", err);
