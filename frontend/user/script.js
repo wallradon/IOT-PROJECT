@@ -1,31 +1,28 @@
 "use strict";
 
-
 document.addEventListener("DOMContentLoaded", () => {
     // ==========================================================
     // ส่วนที่ 1: กำหนด URL เชื่อมต่อ Cloud RESTful API Backend
     // ==========================================================
     const BASE_API_URL = "https://api-node-iot.onrender.com/api";
-    const GET_USERS_API = `${BASE_API_URL}/users/getUsers`;                 // ดึงข้อมูลลูกบ้านทั้งหมด (GET)
-    const CREATE_USER_API = `${BASE_API_URL}/users/createUser`;             // สร้างสมาชิกลูกบ้านใหม่ (POST)
-    const UPDATE_USER_API = `${BASE_API_URL}/users/updateUser`;             // อัปเดตข้อมูล/ต่ออายุสมาชิก (PUT)
-    const GET_VEHICLES_API = `${BASE_API_URL}/vehicles/getVehicles`;         // ดึงข้อมูลรถยนต์ทั้งหมด (GET)
-    const CREATE_VEHICLE_API = `${BASE_API_URL}/vehicles/createVehicle`;     // เพิ่มรถยนต์เข้าฐานข้อมูล (POST)
-    const DELETE_VEHICLE_API = `${BASE_API_URL}/vehicles/deleteVehicle`;     // ลบข้อมูลรถยนต์ (DELETE)
-    const GET_LOGS_API = `${BASE_API_URL}/logs/getLogs`;                     // ดึงประวัติการเข้า-ออกของกล้อง LPR (GET)
-
-    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 2 บรรทัด 18 -->
-    const VISITOR_BARCODE_API = `${BASE_API_URL}/visitor-barcode`;           // 👈 เพิ่มบรรทัดนี้
+    const GET_USERS_API = `${BASE_API_URL}/users/getUsers`;
+    const CREATE_USER_API = `${BASE_API_URL}/users/createUser`;
+    const UPDATE_USER_API = `${BASE_API_URL}/users/updateUser`;
+    const GET_VEHICLES_API = `${BASE_API_URL}/vehicles/getVehicles`;
+    const CREATE_VEHICLE_API = `${BASE_API_URL}/vehicles/createVehicle`;
+    const DELETE_VEHICLE_API = `${BASE_API_URL}/vehicles/deleteVehicle`;
+    const GET_LOGS_API = `${BASE_API_URL}/logs/getLogs`;
+    const VISITOR_BARCODE_API = `${BASE_API_URL}/visitor-barcode`;
 
     // ==========================================================
     // ส่วนที่ 2: ตัวแปรสถานะระบบส่วนกลาง (Global App State)
     // ==========================================================
     let currentUser = null;
     const currentUserId = localStorage.getItem('userId');
-    let allUsersData = [];       // เก็บข้อมูลลูกบ้านทั้งหมดจาก Cloud
-    let allVehiclesData = [];    // เก็บข้อมูลรถยนต์ทั้งหมดจาก Cloud
-    let allLogsData = [];        // เก็บประวัติการเข้า-ออกของรถยนต์จากกล้อง LPR
-    let currentActiveBarcode = localStorage.getItem('savedVisitorBarcode') || null;  // ดึงรหัสบาร์โค้ดเดิมที่เคยสร้างค้างไว้ (ถ้ามี)
+    let allUsersData = [];
+    let allVehiclesData = [];
+    let allLogsData = [];
+    let currentActiveBarcode = localStorage.getItem('savedVisitorBarcode') || null;
 
     // ==========================================================
     // ส่วนที่ 3: ดึง Elements ทั้งหมดจากหน้า HTML
@@ -33,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutBtn = document.getElementById('logoutBtn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', () => {
+            sessionStorage.removeItem('currentUser');
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
             window.location.href = '../login/login.html';
@@ -41,20 +39,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const navItems = document.querySelectorAll('nav li[data-target]');
     const pages = document.querySelectorAll('.page');
 
-    // Elements ระบบสร้าง Dynamic QR Code สำหรับ Visitor
     const qrModal = document.getElementById('qrModal');
     const btnCloseQr = document.getElementById('btnCloseQr');
     const btnDeleteBarcode = document.getElementById('btnDeleteBarcode');
     const qrImageContainer = document.getElementById('qrImageContainer');
     const qrDataText = document.getElementById('qrDataText');
     const visitorCodeDisplay = document.getElementById('visitorCodeDisplay');
-    // Elements ระบบลงทะเบียนรถยนต์
+
     const addVehicleModal = document.getElementById('addVehicleModal');
     const addVehicleForm = document.getElementById('addVehicleForm');
     const btnCancelAddVehicle = document.getElementById('btnCancelAddVehicle');
-    // ==========================================================
 
-    // check token
     async function checkAuth() {
         const token = localStorage.getItem('token');
         if (!token) {
@@ -65,13 +60,10 @@ document.addEventListener("DOMContentLoaded", () => {
         try {
             const response = await fetch(`${BASE_API_URL}/auth/me`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (!response.ok) {
-                // ถ้า Token timeOut / false (401/403)
                 alert('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่');
                 localStorage.removeItem('token');
                 window.location.href = '../login/login.html';
@@ -82,11 +74,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     checkAuth();
+
     // ==========================================================
-    // ส่วนที่ 4: ฟังก์ชันจัดการ Helper และการแปลงข้อความ
+    // ส่วนที่ 4: ฟังก์ชัน Helper
     // ==========================================================
-    // ฟังก์ชันสุ่มรหัส 13 ตัวอักษร (ตัวเลข 0-9 และตัวพิมพ์เล็ก a-z)
-    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 8 บรรทัด 316 (ตัวเลข 0-9 และตัวพิมพ์เล็ก a-z) -->
     function generateRandomVisitorCode(length = 13) {
         const characters = '0123456789abcdefghijklmnopqrstuvwxyz';
         let res = '';
@@ -119,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================================
-    // ส่วนที่ 5: ฟังก์ชันหลักในการดึงข้อมูลสดจาก Cloud Database (Sync Data)
+    // ส่วนที่ 5: ฟังก์ชันดึงข้อมูลจาก Cloud Database
     // ==========================================================
     async function syncDatabase() {
         try {
@@ -138,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
             allLogsData = Array.isArray(logsData) ? logsData : (logsData.data || []);
 
             if (currentUserId) {
-                // หา user ที่เปิดหน้านี้
                 const matchedUser = allUsersData.find(u => String(u.id) === String(currentUserId));
                 if (matchedUser) {
                     currentUser = matchedUser;
@@ -150,13 +140,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================================
-    // ส่วนที่ 8: ระบบจัดการรถยนต์ (เพิ่มรถ + ลบรถ + ตัดช่องว่าง)
+    // ส่วนที่ 6: จัดการรถยนต์
     // ==========================================================
     if (addVehicleForm) {
         addVehicleForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const plateRaw = document.getElementById('inputPlate').value.trim();
             const provinceRaw = document.getElementById('inputProvince').value.trim();
+            const typeRaw = document.getElementById('inputVehicleType')?.value || "Car";
             if (!plateRaw || !provinceRaw || !currentUser) return;
 
             const cleanedPlate = sanitizePlate(plateRaw);
@@ -167,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 user_id: currentUser.id,
                 plate: cleanedPlate,
                 province: cleanedProvince,
-                type: "Car",
+                type: typeRaw,
                 registerDate: todayDisplay
             };
 
@@ -220,9 +211,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================================
-    // ส่วนที่ 9: ระบบต่ออายุสมาชิก บันทึกลง Database จริง (PUT แบบป้องกันค่า Null)
+    // ส่วนที่ 7: ต่ออายุสมาชิก
     // ==========================================================
-
     async function renewMembership() {
         if (!currentUser) return;
 
@@ -263,7 +253,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================================
-    // ส่วนที่ 10: การเรนเดอร์หน้าจอ (User Detail, Dashboard, และ Logs)
+    // ส่วนที่ 8: เรนเดอร์หน้าจอหลัก (พร้อมกล่อง Telegram)
     // ==========================================================
     function createExpiryProgressBar(startDateStr, timeoutDateStr) {
         const end = parseDate(timeoutDateStr);
@@ -331,6 +321,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const progressBar = createExpiryProgressBar(currentUser.memberStartDate, currentUser.memberExpireDate);
 
+        // แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้ ดึง Telegram
+        const telegramBotLink = "https://t.me/SmartVillageVCCESBot";
+
         container.innerHTML = `
             <div class="homeNumber">
                 <p class="homeList">เลขที่บ้าน</p>
@@ -345,8 +338,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p class="homeList">วันที่เริ่มสมาชิก: ${formatDateDisplay(currentUser.memberStartDate)} | หมดอายุ: ${formatDateDisplay(currentUser.memberExpireDate)}</p>
             </div>
             ${progressBar}
+
+            <!-- กล่องเชื่อมต่อ Telegram -->
+            <div class="telegram-card-box">
+                <div class="telegram-header-flex">
+                    <div class="telegram-title">ผูกการแจ้งเตือน Telegram</div>
+                    <span class="telegram-id-badge" style="font-size: 14px; background: #ffeaa7; color: #d63031;">
+                        รหัสสมาชิก: <b>${currentUser.id}</b>
+                    </span>
+                </div>
+                <p class="telegram-subtext" style="margin-top: 8px;">
+                    1. กดปุ่มด้านล่างเพื่อเปิดบอท Telegram<br>
+                    2. พิมพ์รหัสสมาชิก <b>"${currentUser.id}"</b> ส่งให้บอทเพื่อเริ่มรับการแจ้งเตือน
+                </p>
+                <a href="${telegramBotLink}" target="_blank" rel="noopener noreferrer" class="btn-telegram-link" style="margin-top: 10px;">
+                    เปิดบอทแจ้งเตือน (@SmartVillageVCCESBot)
+                </a>
+            </div>
             
-            <div style="text-align: center; margin-top: 10px;">
+            <div style="text-align: center; margin-top: 15px;">
                 <button type="button" id="btnRenewMember" style="background-color: #ffc107; color: #212529; border: none; padding: 8px 20px; border-radius: 20px; font-weight: 700; cursor: pointer; font-family: Prompt; font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">🔄 ต่ออายุสมาชิก (+1 ปี)</button>
             </div>
 
@@ -383,7 +393,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         });
 
-        // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 2 บรรทัด 386-423 เปลี่ยนปุ่มสร้างบาร์โค้ดให้ยิงบันทึก API ขึ้น Database -->
+        // ปุ่มสร้างบาร์โค้ด
         const btnGenerateVisitorQR = document.getElementById('btnGenerateVisitorQR');
         if (btnGenerateVisitorQR) {
             btnGenerateVisitorQR.addEventListener('click', async () => {
@@ -391,7 +401,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     currentActiveBarcode = generateRandomVisitorCode(13);
                 }
 
-                // ส่งบันทึกเข้าตาราง Visitor_Barcodes ของเพื่อน
                 try {
                     const res = await fetch(`${VISITOR_BARCODE_API}/create`, {
                         method: 'POST',
@@ -413,7 +422,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     console.error("API Create Barcode Error:", err);
                 }
 
-                const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${currentActiveBarcode}&scale=3&height=12&includetext`;
+                const barcodeUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${currentActiveBarcode}&scale=3&height=14&includetext`;
 
                 if (visitorCodeDisplay) visitorCodeDisplay.textContent = currentActiveBarcode;
                 if (qrImageContainer) qrImageContainer.innerHTML = `<img src="${barcodeUrl}" alt="Visitor Barcode 13 Digits">`;
@@ -459,12 +468,8 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById('btnBackToDetail')?.addEventListener('click', () => renderPage('user'));
     }
 
-    // ==========================================================
-    // ส่วนที่ 11: การควบคุมระบบ Routing และการเริ่มต้นทำงาน (Initial)
-    // ==========================================================
     function renderPage(target, params = null) {
         pages.forEach(page => page.classList.remove('active'));
-
         const targetPage = document.querySelector(`#page-${target}`);
         if (targetPage) targetPage.classList.add('active');
 
@@ -482,19 +487,6 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 3 บรรทัด 485-494 ลบ/ปิดการใช้ -->
-    // if (logoutBtn) {
-    //     logoutBtn.addEventListener('click', () => {
-    //         sessionStorage.removeItem('currentUser');
-    //         localStorage.removeItem('token');
-    //         localStorage.removeItem('userId');
-    //         currentUser = null;
-    //         window.location.href = '../../index.html';
-    //     });
-    // }
-
-    // <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 4 บรรทัด 496-525 -->
-    // จัดการปุ่มยกเลิก/ลบบาร์โค้ด (Cancel / Delete Barcode)
     if (btnDeleteBarcode) {
         btnDeleteBarcode.addEventListener('click', async () => {
             if (!currentActiveBarcode) return;
@@ -503,16 +495,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 try {
                     await fetch(`${VISITOR_BARCODE_API}/${currentActiveBarcode}`, {
                         method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                     });
                 } catch (err) {
                     console.error("ลบบาร์โค้ดจาก DB ไม่สำเร็จ:", err);
                 }
 
                 alert(`ยกเลิกและลบบาร์โค้ดรหัส ${currentActiveBarcode} เรียบร้อยแล้ว!`);
-
                 localStorage.removeItem('savedVisitorBarcode');
                 currentActiveBarcode = null;
 
@@ -530,7 +519,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // คลิกพื้นหลังสีน้ำเงินด้านนอกเพื่อปิด Modal ทันที
+    // คลิกพื้นหลังสีน้ำเงินเพื่อปิด Modal
     window.addEventListener('click', (e) => {
         if (e.target === qrModal) {
             qrModal.style.display = 'none';
@@ -557,7 +546,6 @@ document.addEventListener("DOMContentLoaded", () => {
         await syncDatabase();
 
         if (currentUser) {
-            // ดึงบาร์โค้ดล่าสุดที่ยัง ACTIVE จาก Database
             try {
                 const barcodeRes = await fetch(`${VISITOR_BARCODE_API}/latest/${currentUser.id}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -577,7 +565,6 @@ document.addEventListener("DOMContentLoaded", () => {
             updateAuthUI();
             renderPage('user');
         } else {
-            // เซสชั่นไม่ถูกต้อง หรือไม่มีบัญชีผู้ใช้นี้ในฐานข้อมูลแล้ว
             localStorage.removeItem('token');
             localStorage.removeItem('userId');
             window.location.href = '../login/login.html';
@@ -586,10 +573,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     init();
 });
-
-// ==========================================================
-// ส่วนที่ 12: ฟังก์ชันสำหรับ Sanitization และจัดการค่า Null
-// ==========================================================
 
 function sanitizePlate(plateNumber) {
     if (!plateNumber) return '';
@@ -615,9 +598,7 @@ function formatLogDateTime(dateString) {
 
 function getMatchedVehicleLogs(apiResponseData, targetPlate) {
     if (!Array.isArray(apiResponseData)) return [];
-
     const cleanTarget = sanitizePlate(targetPlate);
-
     return apiResponseData
         .filter(log => sanitizePlate(log.plate) === cleanTarget)
         .map(log => ({

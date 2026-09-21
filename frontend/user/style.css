@@ -35,7 +35,6 @@ p {
     display: block;
 }
 
-/* Header */
 header {
     box-sizing: border-box;
     display: flex;
@@ -124,22 +123,6 @@ nav ul li:hover {
     background-color: #f0f4f8;
 }
 
-nav ul .user-select {
-    background-color: var(--color-primary);
-    color: var(--color-white);
-    border: 2px solid var(--color-white);
-    box-shadow: 0 4px 10px var(--color-shadow);
-}
-
-.form-group-label {
-    text-align: left;
-    font-size: 13px;
-    color: #444;
-    font-weight: 500;
-    margin-top: 4px;
-}
-
-/* User Details Card */
 .homeDetail .homeNumber,
 .homeDetail .nameOwner,
 .homeDetail .TimeData {
@@ -159,6 +142,68 @@ nav ul .user-select {
     font-size: 1.1rem;
 }
 
+/* Telegram Card Box */
+.telegram-card-box {
+    background: #ffffff;
+    border: 2px solid #2AABEE;
+    margin: 1rem 1rem 0;
+    padding: 16px 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(42, 171, 238, 0.15);
+    text-align: center;
+}
+
+.telegram-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.telegram-title {
+    color: #002e5e;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.telegram-id-badge {
+    background-color: #e8f7fe;
+    color: #2AABEE;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(42, 171, 238, 0.3);
+}
+
+.telegram-subtext {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 12px;
+    text-align: left;
+}
+
+.btn-telegram-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2AABEE, #229ED9);
+    color: #ffffff !important;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 10px 24px;
+    border-radius: 25px;
+    box-shadow: 0 3px 8px rgba(42, 171, 238, 0.35);
+    transition: all 0.2s ease;
+}
+
+.btn-telegram-link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(42, 171, 238, 0.45);
+}
+
+/* Vehicle User */
 .vehicleUser {
     margin-top: 15px;
 }
@@ -202,7 +247,6 @@ nav ul .user-select {
     align-items: center;
     margin: 0.5rem 1rem 0;
     padding: 8px 24px 8px 12px;
-    /* เพิ่ม padding ขวาให้กว้างขึ้น */
     background-color: var(--color-primary);
     border-radius: 6px;
 }
@@ -230,7 +274,6 @@ nav ul .user-select {
     width: fit-content;
 }
 
-/* ปุ่ม QR Code */
 .qr-section {
     margin: 1.2rem 1rem;
     text-align: center;
@@ -255,7 +298,7 @@ nav ul .user-select {
     box-shadow: 0 6px 16px rgba(40, 167, 69, 0.4);
 }
 
-/* Vehicle Detail */
+/* Detail Page */
 #page-vehicleDetail {
     background-color: var(--color-bg);
     padding: 30px 20px;
@@ -304,43 +347,6 @@ nav ul .user-select {
     border-bottom: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* Dashboard Cards */
-.dashboard {
-    padding: 20px;
-}
-
-.dashboard-banner {
-    background: linear-gradient(135deg, #29356c, #002e5e);
-    color: white;
-    text-align: center;
-    padding: 24px;
-    margin-bottom: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px var(--color-shadow);
-}
-
-.summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
-    margin-bottom: 20px;
-}
-
-.summary-box {
-    background: var(--color-primary);
-    color: white;
-    padding: 25px 20px;
-    text-align: center;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px var(--color-shadow);
-}
-
-.summary-box h1 {
-    margin-top: 12px;
-    font-size: 40px;
-    font-weight: 700;
-}
-
 .back-btn {
     background: white;
     color: var(--color-primary);
@@ -361,7 +367,6 @@ nav ul .user-select {
     color: white;
 }
 
-/* Progress Bar */
 .expire-progress-box {
     background-color: var(--color-primary);
     margin: 1rem 1rem 0;
@@ -392,28 +397,7 @@ nav ul .user-select {
     transition: width 0.5s ease-in-out, background-color 0.5s ease-in-out;
 }
 
-/* Dropdown วัน/เดือน/ปี */
-.date-select-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 5px;
-}
-
-.date-select {
-    flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--color-border);
-    font-family: "Prompt", sans-serif;
-    font-size: 14px;
-    background-color: white;
-    cursor: pointer;
-    outline: none;
-}
-
-/* <!-- แแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแแก้จุดที่ 1 บรรทัด 405-579 */
-/* 1. คืนค่ากึ่งกลางสำหรับหน้าจอคอมพิวเตอร์ตามมาตรฐาน */
-/* Auth Modal & QR Modal UI */
+/* Modals */
 .login-modal-overlay {
     position: fixed;
     top: 0;
@@ -425,7 +409,6 @@ nav ul .user-select {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* กึ่งกลางบนจอคอม */
     z-index: 9999;
 }
 
@@ -438,62 +421,8 @@ nav ul .user-select {
     max-width: 410px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
     max-height: 90vh;
-    /* ป้องกันกล่องล้นจอ iPad / จอแนวนอน */
     overflow-y: auto;
-    /* ให้เลื่อน Scroll ลงไปกดปุ่มได้เสมอ */
     -webkit-overflow-scrolling: touch;
-}
-
-.login-logo {
-    height: 70px;
-    width: auto;
-    max-width: 200px;
-    object-fit: contain;
-    margin: 0 auto 15px auto;
-    display: block;
-}
-
-.auth-tabs {
-    display: flex;
-    margin-bottom: 20px;
-    border-bottom: 2px solid #ddd;
-}
-
-.auth-tab {
-    flex: 1;
-    padding: 10px;
-    border: none;
-    background: none;
-    font-size: 16px;
-    font-family: "Prompt", sans-serif;
-    cursor: pointer;
-    color: var(--color-secondary);
-}
-
-.auth-tab.active {
-    font-weight: bold;
-    color: var(--color-primary);
-    border-bottom: 3px solid var(--color-primary);
-}
-
-.auth-form {
-    display: none;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.auth-form.active {
-    display: flex;
-}
-
-.auth-form input {
-    padding: 12px 15px;
-    border-radius: 8px;
-    border: 1px solid var(--color-border);
-    font-family: "Prompt", sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border 0.2s;
 }
 
 .submit-btn {
@@ -513,7 +442,6 @@ nav ul .user-select {
     background-color: var(--color-secondary);
 }
 
-/* กล่อง Modal บาร์โค้ด */
 .qr-modal-box {
     max-width: 380px;
     margin-top: 0;
@@ -560,7 +488,6 @@ nav ul .user-select {
     align-items: center;
 }
 
-/* ล็อกขนาดภาพไม่ให้บวมยืด */
 .qr-img-wrap img {
     max-width: 280px;
     height: auto;
@@ -577,7 +504,6 @@ nav ul .user-select {
     border-radius: 6px;
 }
 
-/* ดันขึ้นชิดขอบบนเฉพาะในมือถือ เพื่อให้สแกนเข้ากล่อง AI ได้สะดวก */
 @media (max-width: 600px) {
     .login-modal-overlay {
         align-items: flex-start;
