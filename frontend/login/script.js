@@ -13,6 +13,8 @@ function hideLoader() {
  * Switch between Login and Register tabs
  * @param {string} tabName - 'login' or 'register'
  */
+let hasShownKeyInfo = false;
+
 function switchTab(tabName) {
     const tabLogin = document.getElementById('tab-login');
     const tabRegister = document.getElementById('tab-register');
@@ -36,6 +38,12 @@ function switchTab(tabName) {
         formLogin.classList.remove('active');
 
         indicator.style.transform = 'translateX(100%)';
+
+        // Show info modal when entering registration tab for the first time
+        if (!hasShownKeyInfo) {
+            document.getElementById('key-info-modal').classList.add('show');
+            hasShownKeyInfo = true;
+        }
     }
 }
 
@@ -302,4 +310,11 @@ function closeSuccessModal() {
         document.getElementById('login-password').focus();
         window.recentRegisteredUsername = null;
     }
+}
+
+/**
+ * Close Key Info Modal
+ */
+function closeKeyInfoModal() {
+    document.getElementById('key-info-modal').classList.remove('show');
 }
