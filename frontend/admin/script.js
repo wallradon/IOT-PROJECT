@@ -39,7 +39,7 @@ async function checkAuth() {
     }
 }
 
-// checkAuth();
+checkAuth();
 
 
 // ===================== Menu Navigation & Page Router =====================

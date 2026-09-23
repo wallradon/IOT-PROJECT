@@ -126,7 +126,9 @@ header {
             border-radius: 24px;
             margin: 10px;
             padding: 20px 30px;
-            min-width: 930px;
+            width: 100%;
+            max-width: 930px;
+            box-sizing: border-box;
 
             h2 {
                 color: var(--color-white);
@@ -995,18 +997,74 @@ header {
 
     .main-content .user-details.active .VehicleRow {
         grid-template-columns: 1fr !important;
-        text-align: center;
-        gap: 10px;
-        padding: 15px;
-        border: 1px solid var(--color-border);
-        border-radius: 24px;
-        margin: 10px;
-        background-color: var(--color-secondary);
+        text-align: left;
+        gap: 8px;
+        padding: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border-radius: 0;
+        margin: 0 !important;
+        background-color: transparent !important;
         box-sizing: border-box;
     }
 
+    .main-content .user-details.active .VehicleRow:last-child {
+        border-bottom: none !important;
+    }
+
+    .main-content .user-details.active .VehicleRow h2 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1rem !important;
+        padding: 4px 0;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+    
     .main-content .user-details.active .VehicleRow h2:last-child {
-        text-align: center;
+        border-bottom: none;
+    }
+
+    .main-content .user-details.active .VehicleRow h2:nth-child(1)::before { content: "ประเภท:"; color: #a0aec0; font-size: 0.9rem; }
+    .main-content .user-details.active .VehicleRow h2:nth-child(2)::before { content: "ทะเบียนรถ:"; color: #a0aec0; font-size: 0.9rem; }
+    .main-content .user-details.active .VehicleRow h2:nth-child(3)::before { content: "บ้านเลขที่:"; color: #a0aec0; font-size: 0.9rem; }
+    .main-content .user-details.active .VehicleRow h2:nth-child(4)::before { content: "เวลาเข้า:"; color: #a0aec0; font-size: 0.9rem; }
+    .main-content .user-details.active .VehicleRow h2:nth-child(5)::before { content: "เวลาออก:"; color: #a0aec0; font-size: 0.9rem; }
+
+    #page-user .UserRowList {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+        padding: 20px !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        margin: 0 !important;
+        background-color: transparent !important;
+        box-sizing: border-box;
+    }
+
+    #page-user .UserRowList:last-child {
+        border-bottom: none !important;
+    }
+
+    #page-user .UserRowList h2 {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 1rem !important;
+        padding: 4px 0;
+        border-bottom: 1px dashed rgba(255,255,255,0.1);
+    }
+
+    #page-user .UserRowList h2:nth-child(1)::before { content: "ลำดับ:"; color: #a0aec0; font-size: 0.9rem; }
+    #page-user .UserRowList h2:nth-child(2)::before { content: "บ้านเลขที่:"; color: #a0aec0; font-size: 0.9rem; }
+
+    #page-user .UserRowList .user-actions {
+        justify-content: center !important;
+        margin-top: 15px;
+        padding-top: 10px;
+    }
+    
+    #VehicleData, #UserData {
+        border-radius: 12px !important;
+        margin-top: 15px !important;
     }
 
     .search-container {
@@ -1093,6 +1151,35 @@ header {
     .back-btn {
         font-size: 14px;
         padding: 10px 20px;
+    }
+
+    .summary-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+        padding: 15px;
+        width: calc(100% - 30px);
+        box-sizing: border-box;
+    }
+
+    .chart-container {
+        min-width: 100%;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+    
+    .summary-boxes {
+        padding: 0 10px;
+    }
+
+    .summary-box {
+        min-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .gen-key-display {
+        font-size: 2.5rem;
+        letter-spacing: 5px;
     }
 }
 
@@ -1200,12 +1287,11 @@ header {
     display: grid !important;
     grid-template-columns: 10rem 10rem 7rem 1fr 1fr !important;
     align-items: center !important;
-    min-width: 930px !important;
-    width: calc(100% - 20px) !important;
+    width: 100% !important;
     max-width: 1100px !important;
     box-sizing: border-box !important;
     padding: 16px 24px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
 }
 
 .headVehicleData {
@@ -1224,10 +1310,9 @@ header {
 }
 
 #VehicleData {
-    margin: 0 0 15px 0 !important;
-    width: calc(100% - 20px) !important;
+    margin: 0 auto 15px auto !important;
+    width: 100% !important;
     max-width: 1100px !important;
-    min-width: 930px !important;
     box-sizing: border-box !important;
     background-color: var(--color-secondary) !important;
     border-radius: 0 0 12px 12px !important;
@@ -1330,12 +1415,11 @@ header {
     display: grid !important;
     grid-template-columns: 8rem 1fr 12rem !important;
     align-items: center !important;
-    min-width: 930px !important;
-    width: calc(100% - 20px) !important;
+    width: 100% !important;
     max-width: 1100px !important;
     box-sizing: border-box !important;
     padding: 16px 24px !important;
-    margin: 0 !important;
+    margin: 0 auto !important;
 }
 
 #page-user .headUserListData {
@@ -1354,10 +1438,9 @@ header {
 }
 
 #UserData {
-    margin: 0 0 15px 0 !important;
-    width: calc(100% - 20px) !important;
+    margin: 0 auto 15px auto !important;
+    width: 100% !important;
     max-width: 1100px !important;
-    min-width: 930px !important;
     box-sizing: border-box !important;
     background-color: var(--color-secondary) !important;
     border-radius: 0 0 12px 12px !important;
