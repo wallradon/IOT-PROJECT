@@ -39,7 +39,7 @@ async function checkAuth() {
     }
 }
 
-checkAuth();
+// checkAuth();
 
 
 // ===================== Menu Navigation & Page Router =====================
@@ -87,7 +87,7 @@ navItems.forEach(li => {
 });
 
 // Show home page first when user logs in
-showPage('vehicle');
+showPage('summary');
 
 /**
  * Refresh Current Page
@@ -142,6 +142,7 @@ function renderUserPage(target, params) {
 
     // 5. If download is complete, show data based on target page
     const renderRoutes = {
+        summary: () => renderSummary(VeLog),
         user: () => renderUserList(UsersData),
         userDetail: (params) => renderUserDetail(Number(params?.id)),
         editUser: (params) => renderEditUserPage(Number(params?.id)),
@@ -155,6 +156,194 @@ function renderUserPage(target, params) {
     } else {
         console.log(`No render function found for target: ${target}`);
     }
+}
+
+// ===================== Render SUMMARY Page =====================
+let summaryChartIn = null;
+let summaryChartOut = null;
+
+/**
+ * Function to render vehicle entry/exit summary chart (Hourly)
+ * @param {Array} data - All vehicle logs
+ */
+function renderSummary(data) {
+    const summaryContainer = document.querySelector('#SummaryData');
+    if (!summaryContainer) return;
+
+    // Date picker setup
+    const dateInput = document.getElementById('summaryDate');
+    if (dateInput && !dateInput.onchange) {
+        // Set default to today if empty
+        if (!dateInput.value) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            dateInput.value = `${year}-${month}-${day}`;
+        }
+
+        dateInput.onchange = (e) => {
+            renderSummary(VeLog);
+        };
+    }
+
+    const selectedDate = dateInput ? dateInput.value : '';
+    if (!selectedDate) return;
+
+    // Create 24-hour buckets
+    const entryCounts = Array(24).fill(0);
+    const exitCounts = Array(24).fill(0);
+
+    data.forEach(log => {
+        // log.time_in and log.time_out format: YYYY-MM-DD HH:mm:ss or '-'
+        if (log.time_in && log.time_in !== '-' && log.time_in.startsWith(selectedDate)) {
+            const hour = parseInt(log.time_in.substring(11, 13), 10);
+            if (!isNaN(hour)) entryCounts[hour]++;
+        }
+        if (log.time_out && log.time_out !== '-' && log.time_out.startsWith(selectedDate)) {
+            const hour = parseInt(log.time_out.substring(11, 13), 10);
+            if (!isNaN(hour)) exitCounts[hour]++;
+        }
+    });
+
+    const xArray = Array.from({ length: 24 }, (_, i) => `${String(i).padStart(2, '0')}:00`);
+
+    // Calculate peaks
+    let maxInCount = 0;
+    let maxInHour = '-';
+    entryCounts.forEach((count, idx) => {
+        if (count > maxInCount) {
+            maxInCount = count;
+            maxInHour = `${String(idx).padStart(2, '0')}:00`;
+        }
+    });
+
+    let maxOutCount = 0;
+    let maxOutHour = '-';
+    exitCounts.forEach((count, idx) => {
+        if (count > maxOutCount) {
+            maxOutCount = count;
+            maxOutHour = `${String(idx).padStart(2, '0')}:00`;
+        }
+    });
+
+    // Update summary boxes DOM
+    const peakInTimeEl = document.getElementById('peakInTime');
+    const peakInCountEl = document.getElementById('peakInCount');
+    if (peakInTimeEl) peakInTimeEl.textContent = maxInHour;
+    if (peakInCountEl) peakInCountEl.textContent = `${maxInCount} คัน`;
+
+    const peakOutTimeEl = document.getElementById('peakOutTime');
+    const peakOutCountEl = document.getElementById('peakOutCount');
+    if (peakOutTimeEl) peakOutTimeEl.textContent = maxOutHour;
+    if (peakOutCountEl) peakOutCountEl.textContent = `${maxOutCount} คัน`;
+
+    // Restore canvas if it was overwritten
+    if (!document.getElementById('chartIn') || !document.getElementById('chartOut')) {
+        summaryContainer.replaceChildren();
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'charts-wrapper';
+
+        const divIn = document.createElement('div');
+        divIn.className = 'chart-container';
+        const canvasIn = document.createElement('canvas');
+        canvasIn.id = 'chartIn';
+        divIn.appendChild(canvasIn);
+
+        const divOut = document.createElement('div');
+        divOut.className = 'chart-container';
+        const canvasOut = document.createElement('canvas');
+        canvasOut.id = 'chartOut';
+        divOut.appendChild(canvasOut);
+
+        wrapper.appendChild(divIn);
+        wrapper.appendChild(divOut);
+        summaryContainer.appendChild(wrapper);
+    }
+
+    const ctxIn = document.getElementById('chartIn');
+    const ctxOut = document.getElementById('chartOut');
+    if (!ctxIn || !ctxOut) return;
+
+    if (summaryChartIn) summaryChartIn.destroy();
+    if (summaryChartOut) summaryChartOut.destroy();
+
+    // Chart In
+    summaryChartIn = new Chart(ctxIn, {
+        type: 'bar',
+        data: {
+            labels: xArray,
+            datasets: [
+                {
+                    label: 'เวลาเข้า (In)',
+                    data: entryCounts,
+                    backgroundColor: 'rgba(0, 153, 255, 0.7)',
+                    borderColor: 'rgba(0, 153, 255, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'สรุปจำนวนรถเข้า รายชั่วโมง',
+                    font: { size: 16 }
+                },
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'จำนวนรถ (Count)' },
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    title: { display: true, text: 'เวลา (Time)' }
+                }
+            }
+        }
+    });
+
+    // Chart Out
+    summaryChartOut = new Chart(ctxOut, {
+        type: 'bar',
+        data: {
+            labels: xArray,
+            datasets: [
+                {
+                    label: 'เวลาออก (Out)',
+                    data: exitCounts,
+                    backgroundColor: 'rgba(255, 60, 0, 0.7)',
+                    borderColor: 'rgba(255, 60, 0, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'สรุปจำนวนรถออก รายชั่วโมง',
+                    font: { size: 16 }
+                },
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'จำนวนรถ (Count)' },
+                    ticks: { stepSize: 1 }
+                },
+                x: {
+                    title: { display: true, text: 'เวลา (Time)' }
+                }
+            }
+        }
+    });
 }
 
 // ===================== Render VEHICLE DATA Page =====================

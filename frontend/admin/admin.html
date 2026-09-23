@@ -7,6 +7,7 @@
     <title>Project IOT</title>
     <link rel="icon" href="../img/logo.jpg">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
@@ -18,13 +19,49 @@
     <main class="main-content">
         <nav>
             <ul>
+                <li data-target="summary">SUMMARY</li>
                 <li data-target="vehicle">VEHICLE DATA</li>
                 <li id="selectUs" data-target="user">USER DATA</li>
                 <li data-target="genKey">GEN KEY</li>
             </ul>
         </nav>
+        <!-- SUMMARY -->
+        <section class="page active" id="page-summary">
+            <div class="summary-header">
+                <h2>สรุปข้อมูลประจำวัน</h2>
+                <div class="date-picker-wrapper">
+                    <span class="icon">📅</span>
+                    <input type="date" id="summaryDate" class="modern-date-input" title="เลือกวันที่เพื่อดูสรุปข้อมูล">
+                </div>
+            </div>
+            
+            <div class="summary-boxes">
+                <div class="summary-box box-in">
+                    <h3>เวลาเข้ามากที่สุด (Peak In)</h3>
+                    <p id="peakInTime">-</p>
+                    <span id="peakInCount">0 คัน</span>
+                </div>
+                <div class="summary-box box-out">
+                    <h3>เวลาออกมากที่สุด (Peak Out)</h3>
+                    <p id="peakOutTime">-</p>
+                    <span id="peakOutCount">0 คัน</span>
+                </div>
+            </div>
+
+            <section class="dataLoading" id="SummaryData">
+                <div class="charts-wrapper">
+                    <div class="chart-container">
+                        <canvas id="chartIn"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="chartOut"></canvas>
+                    </div>
+                </div>
+            </section>
+        </section>
+
         <!-- VEHICLE-->
-        <section class="page user-details active" id="page-vehicle">
+        <section class="page user-details" id="page-vehicle">
             <div class="headUserData headVehicleData">
                 <h2>ประเภท</h2>
                 <h2>ทะเบียนรถ</h2>
