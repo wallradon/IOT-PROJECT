@@ -286,22 +286,27 @@ function renderSummary(data) {
         },
         options: {
             responsive: true,
+            color: '#eeeeee',
             plugins: {
                 title: {
                     display: true,
                     text: 'สรุปจำนวนรถเข้า รายชั่วโมง',
-                    font: { size: 16 }
+                    font: { size: 16 },
+                    color: '#eeeeee'
                 },
                 legend: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'จำนวนรถ (Count)' },
-                    ticks: { stepSize: 1 }
+                    title: { display: true, text: 'จำนวนรถ (Count)', color: '#eeeeee' },
+                    ticks: { stepSize: 1, color: '#eeeeee' },
+                    grid: { color: 'rgba(238, 238, 238, 0.1)' }
                 },
                 x: {
-                    title: { display: true, text: 'เวลา (Time)' }
+                    title: { display: true, text: 'เวลา (Time)', color: '#eeeeee' },
+                    ticks: { color: '#eeeeee' },
+                    grid: { color: 'rgba(238, 238, 238, 0.1)' }
                 }
             }
         }
@@ -324,22 +329,27 @@ function renderSummary(data) {
         },
         options: {
             responsive: true,
+            color: '#eeeeee',
             plugins: {
                 title: {
                     display: true,
                     text: 'สรุปจำนวนรถออก รายชั่วโมง',
-                    font: { size: 16 }
+                    font: { size: 16 },
+                    color: '#eeeeee'
                 },
                 legend: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    title: { display: true, text: 'จำนวนรถ (Count)' },
-                    ticks: { stepSize: 1 }
+                    title: { display: true, text: 'จำนวนรถ (Count)', color: '#eeeeee' },
+                    ticks: { stepSize: 1, color: '#eeeeee' },
+                    grid: { color: 'rgba(238, 238, 238, 0.1)' }
                 },
                 x: {
-                    title: { display: true, text: 'เวลา (Time)' }
+                    title: { display: true, text: 'เวลา (Time)', color: '#eeeeee' },
+                    ticks: { color: '#eeeeee' },
+                    grid: { color: 'rgba(238, 238, 238, 0.1)' }
                 }
             }
         }

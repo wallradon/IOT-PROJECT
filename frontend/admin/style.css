@@ -1282,13 +1282,23 @@ header {
 }
 
 /* ===================== Clean Table & Badges Styling ===================== */
-.VehicleRow,
-.headVehicleData {
+.VehicleRow {
     display: grid !important;
     grid-template-columns: 10rem 10rem 7rem 1fr 1fr !important;
     align-items: center !important;
     width: 100% !important;
-    max-width: 1100px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+}
+
+.headVehicleData {
+    display: grid !important;
+    grid-template-columns: 10rem 10rem 7rem 1fr 1fr !important;
+    align-items: center !important;
+    width: calc(100% - 40px) !important;
+    max-width: 930px !important;
     box-sizing: border-box !important;
     padding: 16px 24px !important;
     margin: 0 auto !important;
@@ -1311,8 +1321,8 @@ header {
 
 #VehicleData {
     margin: 0 auto 15px auto !important;
-    width: 100% !important;
-    max-width: 1100px !important;
+    width: calc(100% - 40px) !important;
+    max-width: 930px !important;
     box-sizing: border-box !important;
     background-color: var(--color-secondary) !important;
     border-radius: 0 0 12px 12px !important;
@@ -1410,13 +1420,23 @@ header {
 }
 
 /* ===================== User Data Table Styling ===================== */
-#page-user .headUserListData,
 #page-user .UserRowList {
     display: grid !important;
     grid-template-columns: 8rem 1fr 12rem !important;
     align-items: center !important;
     width: 100% !important;
-    max-width: 1100px !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 16px 24px !important;
+    margin: 0 !important;
+}
+
+#page-user .headUserListData {
+    display: grid !important;
+    grid-template-columns: 8rem 1fr 12rem !important;
+    align-items: center !important;
+    width: calc(100% - 40px) !important;
+    max-width: 930px !important;
     box-sizing: border-box !important;
     padding: 16px 24px !important;
     margin: 0 auto !important;
@@ -1439,8 +1459,8 @@ header {
 
 #UserData {
     margin: 0 auto 15px auto !important;
-    width: 100% !important;
-    max-width: 1100px !important;
+    width: calc(100% - 40px) !important;
+    max-width: 930px !important;
     box-sizing: border-box !important;
     background-color: var(--color-secondary) !important;
     border-radius: 0 0 12px 12px !important;
@@ -1503,26 +1523,26 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #fff;
+    background: var(--color-primary);
     padding: 15px 25px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     margin: 20px auto;
     max-width: 1000px;
     width: 90%;
 }
 .summary-header h2 {
     margin: 0;
-    color: #333;
+    color: var(--color-white);
     font-size: 1.4rem;
 }
 .date-picker-wrapper {
     display: flex;
     align-items: center;
-    background: #f4f7fb;
+    background: var(--color-white);
     padding: 8px 15px;
     border-radius: 8px;
-    border: 1px solid #e1e8ed;
+    border: 1px solid var(--color-border);
     transition: all 0.3s ease;
 }
 .date-picker-wrapper:focus-within {
@@ -1538,7 +1558,7 @@ header {
     background: transparent;
     font-size: 1rem;
     font-weight: 500;
-    color: #333;
+    color: var(--color-primary);
     outline: none;
     font-family: inherit;
     cursor: pointer;
@@ -1554,14 +1574,14 @@ header {
 }
 
 .summary-box {
-    background-color: #fff;
+    background-color: var(--color-secondary);
     border-radius: 12px;
     padding: 20px;
     flex: 1;
     min-width: 250px;
     text-align: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-    border-top: 5px solid #ddd;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    border-top: 5px solid var(--color-border);
 }
 
 .summary-box.box-in {
@@ -1575,20 +1595,20 @@ header {
 .summary-box h3 {
     margin: 0 0 10px 0;
     font-size: 1.1rem;
-    color: #555;
+    color: #b0bec5;
 }
 
 .summary-box p {
     font-size: 1.8rem;
     font-weight: bold;
-    color: #333;
+    color: var(--color-white);
     margin: 0 0 10px 0;
 }
 
 .summary-box span {
     font-size: 1rem;
-    color: #666;
-    background: #f0f4f8;
+    color: var(--color-white);
+    background: var(--color-primary);
     padding: 4px 12px;
     border-radius: 20px;
     font-weight: 500;
@@ -1606,13 +1626,40 @@ header {
 .chart-container {
     flex: 1;
     min-width: 320px;
-    background: #fff;
+    background: var(--color-secondary);
     padding: 15px;
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .chart-container canvas {
     width: 100% !important;
     height: auto !important;
+}
+
+/* ===================== Mobile Priority Overrides ===================== */
+@media screen and (max-width: 768px) {
+    .main-content .user-details.active .headUserData,
+    .main-content .user-details.active .headVehicleData,
+    #page-user .headUserListData {
+        display: none !important;
+    }
+
+    .main-content .user-details.active .VehicleRow,
+    #page-user .UserRowList {
+        grid-template-columns: 1fr !important;
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    #page-user .UserRowList h2,
+    .main-content .user-details.active .VehicleRow h2 {
+        display: flex !important;
+        text-align: left !important;
+    }
+    
+    #page-user .UserRowList .user-actions {
+        display: flex !important;
+        width: 100% !important;
+    }
 }
